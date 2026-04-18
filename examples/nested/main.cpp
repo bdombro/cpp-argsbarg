@@ -39,14 +39,12 @@ int main(int argc, const char* argv[]) {
     Application{"nesteddemo"}
         .description("Nested groups demo.")
         .fallback("read", FallbackMode::UnknownOnly)
-        .command(Group{"stat", "File metadata."}
-            .child(Group{"owner", "Ownership helpers."}
-                .child(Leaf{"lookup", "Resolve owner info."}
-                    .handler(stat_owner_lookup)
-                    .option(Opt{"user-name", "User to look up."}.string().short_alias('u'))
-                    .arg(Arg{"path", "File or directory."}))))
-        .command(Leaf{"read", "Print the first line of each file."}
-            .handler(read_cmd)
-            .arg(Arg{"files", "Paths to read."}.min(1)))
+        .command(Group{"stat", "File metadata."}.child(Group{"owner", "Ownership helpers."}.child(
+            Leaf{"lookup", "Resolve owner info."}
+                .handler(stat_owner_lookup)
+                .option(Opt{"user-name", "User to look up."}.string().short_alias('u'))
+                .arg(Arg{"path", "File or directory."}))))
+        .command(Leaf{"read", "Print the first line of each file."}.handler(read_cmd).arg(
+            Arg{"files", "Paths to read."}.min(1)))
         .run(argc, argv);
 }

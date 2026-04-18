@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: clang-format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dry-run (fail on drift)
+        run: |
+          find include tests examples \( -name '*.hpp' -o -name '*.cpp' \) \
+            ! -path '*/build/*' ! -path '*/_deps/*' -print0 \
+            | xargs -0 clang-format --dry-run --Werror
+
+  build-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - name: Build
+        run: cmake --build build -j 4
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: Install smoke (headers + CMake package)
+        run: |
+          cmake -S . -B build-install -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$PWD/prefix" \
+            -DARGSBARG_BUILD_EXAMPLES=OFF \
+            -DARGSBARG_BUILD_TESTS=OFF
+          cmake --build build-install -j 4
+          cmake --install build-install --component argsbarg_Development
+          test -f "$PWD/prefix/include/argsbarg/argsbarg.hpp"
+          cfg="$(find "$PWD/prefix" -name argsbargConfig.cmake | head -n 1)"
+          test -n "$cfg" && test -f "$cfg"

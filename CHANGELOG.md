@@ -7,13 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.2.0] - 2026-04-18
+### Added
+
+- GitHub Actions workflow: configure, build, `ctest`, install smoke, and `clang-format --dry-run`.
+- `CONTRIBUTING.md`, `SECURITY.md`, `CODE_OF_CONDUCT.md`.
+- `feature-spec.md` normative notes for exit codes and fallback behavior.
+- Conan 2 `conanfile.py` plus `test_package/` consumer smoke.
+- `.clang-format` for consistent C++ style.
 
 ### Changed
 
-- (Summarize this release; amend commit before push if needed.)
+- CMake minimum **3.21**; `project(… HOMEPAGE_URL …)` metadata.
+- Exported target **`argsbarg::argsbarg`** now sets `INTERFACE` **C++23** compile features for `find_package` consumers.
+- When **not** the top-level project, `ARGSBARG_BUILD_EXAMPLES` and `ARGSBARG_BUILD_TESTS` default to **OFF** (still **ON** at repo root).
+- README: friendlier tone, richer feature bullets, softer platform wording; `just release` no longer auto-pushes (prints push command instead).
 
-## [0.1.3] - 2026-04-18
+## [0.2.0] - 2026-04-18
 
 ### Added
 
@@ -21,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `cmake --install` support: headers + `argsbargConfig.cmake` / `argsbargConfigVersion.cmake` exported to `${CMAKE_INSTALL_LIBDIR}/cmake/argsbarg/`; install component `argsbarg_Development`.
 - `argsbarg::argsbarg` ALIAS target so `FetchContent` and `find_package` consumers use the same target name.
 - `just install` recipe (installs to `PREFIX`, default `$HOME/.local`).
-- `ARGSBARG_BUILD_EXAMPLES` and `ARGSBARG_BUILD_TESTS` CMake options (both default `ON`) to opt out when embedding.
+- `ARGSBARG_BUILD_EXAMPLES` and `ARGSBARG_BUILD_TESTS` CMake options (default **ON** at top level) to opt out when embedding.
 - CMake project `VERSION` is now read automatically from `version()` in `argsbarg.hpp` — single source of truth.
 
 ### Changed
@@ -30,19 +39,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `visible_width` advances by UTF-8 code units so multibyte box glyphs count as one column.
 - `GNUInstallDirs` included before `add_library`; `INSTALL_INTERFACE` uses `${CMAKE_INSTALL_INCLUDEDIR}`.
 - `add_subdirectory(examples)` gated in root `CMakeLists.txt`; `examples/CMakeLists.txt` is unconditional.
-- README: Install section restructured into three numbered options (FetchContent, cmake --install, vcpkg/Conan); Developing section removed; placeholder repo URL fixed to real GitHub URL.
+- README: Install section restructured into three numbered options (FetchContent, cmake --install, optional Conan); Developing section removed; placeholder repo URL fixed to real GitHub URL.
 
 ## [0.1.2] - 2026-04-18
 
 ### Changed
 
-- (Summarize this release; amend commit before push if needed.)
+- Small documentation and packaging notes while iterating toward `cmake --install` / export layout.
 
 ## [0.1.1] - 2026-04-18
-
-### Changed
-
-- (Summarize this release; amend commit before push if needed.)
 
 ### Changed
 

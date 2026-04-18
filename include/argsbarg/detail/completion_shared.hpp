@@ -52,7 +52,8 @@ struct ScopeRec {
     return r;
 }
 
-inline void walk_scopes(const std::string& cmd_path, const Command& cmd, std::vector<ScopeRec>& acc) {
+inline void walk_scopes(const std::string& cmd_path, const Command& cmd,
+                        std::vector<ScopeRec>& acc) {
     acc.push_back(ScopeRec{
         .kids = cmd.children,
         .opts = cmd.options,

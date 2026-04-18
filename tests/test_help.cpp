@@ -1,7 +1,5 @@
 #include <argsbarg/argsbarg.hpp>
-
 #include <catch2/catch_test_macros.hpp>
-
 #include <string>
 
 using namespace argsbarg;
@@ -37,7 +35,9 @@ TEST_CASE("help_render for routing node path") {
 
 TEST_CASE("help_render_stderr produces output for leaf") {
     Schema s{.name = "mytool", .description = ""};
-    s.commands.push_back(Leaf{"go", "Run it"}.handler([](Context&) {}).option(Opt{"fast", "Speed"}.short_alias('f')));
+    s.commands.push_back(Leaf{"go", "Run it"}
+                             .handler([](Context&) {})
+                             .option(Opt{"fast", "Speed"}.short_alias('f')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     const auto h = help_render_stderr(m, {"go"});
@@ -46,7 +46,9 @@ TEST_CASE("help_render_stderr produces output for leaf") {
 
 TEST_CASE("help_render leaf includes usage") {
     Schema s{.name = "mytool", .description = ""};
-    s.commands.push_back(Leaf{"go", "Run it"}.handler([](Context&) {}).option(Opt{"fast", "Speed"}.short_alias('f')));
+    s.commands.push_back(Leaf{"go", "Run it"}
+                             .handler([](Context&) {})
+                             .option(Opt{"fast", "Speed"}.short_alias('f')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     const auto h = help_render(m, {"go"});

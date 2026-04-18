@@ -17,6 +17,23 @@ completion-check: build
     ./build/examples/minimal/minimal_example completion bash > build/_argsbarg_completion_check.sh
     bash -n build/_argsbarg_completion_check.sh
 
+# Format C++ under include/, tests/, examples/ (excludes in-tree example build trees).
+format:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo_root="{{justfile_directory()}}"
+    CFMT="${CLANG_FORMAT:-clang-format}"
+    if ! command -v "$CFMT" >/dev/null 2>&1 && command -v xcrun >/dev/null 2>&1; then
+      CFMT="$(xcrun -find clang-format 2>/dev/null || true)"
+    fi
+    if ! command -v "$CFMT" >/dev/null 2>&1; then
+      echo "error: clang-format not found (set CLANG_FORMAT=...)" >&2
+      exit 1
+    fi
+    cd "$repo_root"
+    find include tests examples \( -name '*.hpp' -o -name '*.cpp' \) \
+      ! -path '*/build/*' ! -path '*/_deps/*' -print0 | xargs -0 "$CFMT" -i
+
 clean:
     rm -rf build build-coverage build-install
 
@@ -72,6 +89,7 @@ coverage:
     echo "Open build/coverage/html/index.html"  # instruments tests + examples (header-only lib has no .a)
 
 # Bump version, update CHANGELOG stub, commit, and tag. Requires a clean git working tree.
+# Does not push: review the CHANGELOG stub, then `git push && git push origin vX.Y.Z`.
 # Usage: `just release patch` | `just release minor` | `just release major` | `just release 1.2.3`
 release kind:
     #!/usr/bin/env bash
@@ -116,10 +134,10 @@ release kind:
     today="$(date +%Y-%m-%d)"
     perl -pi -e 's/return "[0-9.]+"/return "'"$new"'"/' "$hdr"
     perl -pi -e 's/(GIT_TAG\s+)v[0-9.]+/${1}v'"$new"'/' "$readme"
-    python3 -c 'import sys; from pathlib import Path; nl=chr(10); p,v,d=Path(sys.argv[1]),sys.argv[2],sys.argv[3]; t=p.read_text(encoding="utf-8"); m="## [Unreleased]"+nl+nl; assert m in t, "missing ## [Unreleased] in CHANGELOG.md"; b=m+"## ["+v+"] - "+d+nl+nl+"### Changed"+nl+nl+"- (Summarize this release; amend commit before push if needed.)"+nl+nl; p.write_text(t.replace(m,b,1),encoding="utf-8")' "$changelog" "$new" "$today"
+    python3 -c 'import sys; from pathlib import Path; nl=chr(10); p,v,d=Path(sys.argv[1]),sys.argv[2],sys.argv[3]; t=p.read_text(encoding="utf-8"); m="## [Unreleased]"+nl+nl; assert m in t, "missing ## [Unreleased] in CHANGELOG.md"; b=m+"## ["+v+"] - "+d+nl+nl+"### Changed"+nl+nl+"- (Replace this stub with real release notes, then push.)"+nl+nl; p.write_text(t.replace(m,b,1),encoding="utf-8")' "$changelog" "$new" "$today"
     git add "$hdr" "$readme" "$changelog"
     git commit -m "chore: release v$new"
     git tag -a "v$new" -m "Release v$new"
-    echo "Created commit and tag v$new. Push with: git push && git push origin v$new"
-    git push
-    git push origin v$new
+    echo "Created commit and annotated tag v$new (not pushed)."
+    echo "Edit the new ## [$new] section in CHANGELOG.md if needed, then:"
+    echo "  git push && git push origin v$new"

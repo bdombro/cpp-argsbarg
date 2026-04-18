@@ -17,10 +17,10 @@ namespace bash_gen {
 constexpr const char* k_help_long = "--help";
 constexpr const char* k_help_short = "-h";
 
-using detail::ScopeRec;
 using detail::collect_scopes;
 using detail::esc_shell_single_quoted;
 using detail::ident_token;
+using detail::ScopeRec;
 
 inline std::string emit_consume_long(std::string_view ident, const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
@@ -31,7 +31,8 @@ inline std::string emit_consume_long(std::string_view ident, const std::vector<S
         const auto& sc = scopes[i];
         o << "    " << i << ")\n";
         o << "      case $w in\n";
-        o << "        " << k_help_long << "|" << k_help_long << "=*|" << k_help_short << ") echo 1 ;;\n";
+        o << "        " << k_help_long << "|" << k_help_long << "=*|" << k_help_short
+          << ") echo 1 ;;\n";
         for (const auto& op : sc.opts) {
             if (op.positional) {
                 continue;
@@ -100,10 +101,8 @@ inline std::string emit_consume_short(std::string_view ident, const std::vector<
     return o.str();
 }
 
-inline std::string emit_match_child(
-    std::string_view ident,
-    const std::vector<ScopeRec>& scopes,
-    const std::unordered_map<std::string, int>& path_index) {
+inline std::string emit_match_child(std::string_view ident, const std::vector<ScopeRec>& scopes,
+                                    const std::unordered_map<std::string, int>& path_index) {
     std::ostringstream o;
     o << "_" << ident << "_nac_match_child() {\n";
     o << "  local sid=\"$1\" w=\"$2\"\n";
@@ -168,7 +167,8 @@ inline std::string emit_simulate(std::string_view ident) {
     return o.str();
 }
 
-inline std::string emit_main_body(const Schema& schema, std::string_view ident, const std::vector<ScopeRec>& scopes) {
+inline std::string emit_main_body(const Schema& schema, std::string_view ident,
+                                  const std::vector<ScopeRec>& scopes) {
     std::string main_name = schema.name;
     for (auto& c : main_name) {
         if (c == '-') {
@@ -182,9 +182,8 @@ inline std::string emit_main_body(const Schema& schema, std::string_view ident, 
     for (std::size_t i = 0; i < scopes.size(); ++i) {
         const auto& sc = scopes[i];
         auto sorted_kids = sc.kids;
-        std::sort(sorted_kids.begin(), sorted_kids.end(), [](const Command& a, const Command& b) {
-            return a.name < b.name;
-        });
+        std::sort(sorted_kids.begin(), sorted_kids.end(),
+                  [](const Command& a, const Command& b) { return a.name < b.name; });
         o << "  local -a _" << ident << "_cmds_" << i << "=(";
         for (std::size_t k = 0; k < sorted_kids.size(); ++k) {
             if (k) {
@@ -194,11 +193,11 @@ inline std::string emit_main_body(const Schema& schema, std::string_view ident, 
         }
         o << ")\n";
         auto sorted_opts = sc.opts;
-        std::sort(sorted_opts.begin(), sorted_opts.end(), [](const Option& a, const Option& b) {
-            return a.name < b.name;
-        });
+        std::sort(sorted_opts.begin(), sorted_opts.end(),
+                  [](const Option& a, const Option& b) { return a.name < b.name; });
         o << "  local -a _" << ident << "_opts_" << i << "=(";
-        o << '\'' << esc_shell_single_quoted(k_help_long) << "' '" << esc_shell_single_quoted(k_help_short) << '\'';
+        o << '\'' << esc_shell_single_quoted(k_help_long) << "' '"
+          << esc_shell_single_quoted(k_help_short) << '\'';
         for (const auto& op : sorted_opts) {
             if (op.positional) {
                 continue;
@@ -222,7 +221,8 @@ inline std::string emit_main_body(const Schema& schema, std::string_view ident, 
     o << "  if [[ $cur == -* ]]; then\n";
     o << "    case $sid in\n";
     for (std::size_t i = 0; i < scopes.size(); ++i) {
-        o << "      " << i << ") COMPREPLY=( $(compgen -W \"${_" << ident << "_opts_" << i << "[*]}\" -- \"$cur\") ) ;;\n";
+        o << "      " << i << ") COMPREPLY=( $(compgen -W \"${_" << ident << "_opts_" << i
+          << "[*]}\" -- \"$cur\") ) ;;\n";
     }
     o << "    esac\n";
     o << "  else\n";
@@ -230,7 +230,8 @@ inline std::string emit_main_body(const Schema& schema, std::string_view ident, 
     for (std::size_t i = 0; i < scopes.size(); ++i) {
         o << "      " << i << ")\n";
         o << "        if [[ ${_" << ident << "_leaf_" << i << "} -eq 0 ]]; then\n";
-        o << "          COMPREPLY=( $(compgen -W \"${_" << ident << "_cmds_" << i << "[*]}\" -- \"$cur\") )\n";
+        o << "          COMPREPLY=( $(compgen -W \"${_" << ident << "_cmds_" << i
+          << "[*]}\" -- \"$cur\") )\n";
         o << "        elif [[ ${_" << ident << "_pos_" << i << "} -eq 1 ]]; then\n";
         o << "          COMPREPLY=( $(compgen -f -- \"$cur\") )\n";
         o << "        fi ;;\n";

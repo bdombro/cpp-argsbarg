@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.21)
 
 # Single source of truth for the library semver (see also version() in argsbarg.hpp).
 file(READ "${CMAKE_CURRENT_SOURCE_DIR}/include/argsbarg/argsbarg.hpp" _argsbarg_hdr)
@@ -11,6 +11,7 @@ endif()
 project(argsbarg
   VERSION ${_argsbarg_parse_ver}
   DESCRIPTION "C++23 header-only CLI toolkit"
+  HOMEPAGE_URL "https://github.com/bdombro/cpp-argsbarg"
   LANGUAGES CXX
 )
 
@@ -24,8 +25,17 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(ARGSBARG_BUILD_EXAMPLES "Build example programs" ON)
-option(ARGSBARG_BUILD_TESTS "Build unit tests (Catch2 via FetchContent)" ON)
+# When embedded via FetchContent/add_subdirectory, default off to avoid extra targets
+# and Catch2 fetch unless the consumer opts in.
+if(PROJECT_IS_TOP_LEVEL)
+  set(_argsbarg_build_examples_default ON)
+  set(_argsbarg_build_tests_default ON)
+else()
+  set(_argsbarg_build_examples_default OFF)
+  set(_argsbarg_build_tests_default OFF)
+endif()
+option(ARGSBARG_BUILD_EXAMPLES "Build example programs" ${_argsbarg_build_examples_default})
+option(ARGSBARG_BUILD_TESTS "Build unit tests (Catch2 via FetchContent)" ${_argsbarg_build_tests_default})
 
 option(ARGSBARG_ENABLE_COVERAGE "Instrument library and dependents for coverage" OFF)
 if(ARGSBARG_ENABLE_COVERAGE)
@@ -46,6 +56,9 @@ target_include_directories(argsbarg INTERFACE
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
+
+# Ensure find_package / target_link_libraries consumers compile as C++23.
+target_compile_features(argsbarg INTERFACE cxx_std_23)
 
 if(ARGSBARG_BUILD_EXAMPLES)
   add_subdirectory(examples)

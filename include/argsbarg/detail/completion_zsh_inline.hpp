@@ -22,19 +22,18 @@ namespace zsh_gen {
 constexpr const char* k_help_long = "--help";
 constexpr const char* k_help_short = "-h";
 
-using detail::ScopeRec;
 using detail::collect_scopes;
 using detail::esc_shell_single_quoted;
 using detail::ident_token;
+using detail::ScopeRec;
 
 inline std::string emit_scope_arrays(std::string_view ident, const std::vector<ScopeRec>& scopes) {
     std::ostringstream lines;
     for (std::size_t i = 0; i < scopes.size(); ++i) {
         const auto& sc = scopes[i];
         auto sorted_kids = sc.kids;
-        std::sort(sorted_kids.begin(), sorted_kids.end(), [](const Command& a, const Command& b) {
-            return a.name < b.name;
-        });
+        std::sort(sorted_kids.begin(), sorted_kids.end(),
+                  [](const Command& a, const Command& b) { return a.name < b.name; });
         lines << "typeset -g -a A_" << ident << "_" << i << "_cmds\n";
         lines << "A_" << ident << "_" << i << "_cmds=(";
         for (std::size_t k = 0; k < sorted_kids.size(); ++k) {
@@ -47,9 +46,8 @@ inline std::string emit_scope_arrays(std::string_view ident, const std::vector<S
         lines << ")\n";
 
         auto sorted_opts = sc.opts;
-        std::sort(sorted_opts.begin(), sorted_opts.end(), [](const Option& a, const Option& b) {
-            return a.name < b.name;
-        });
+        std::sort(sorted_opts.begin(), sorted_opts.end(),
+                  [](const Option& a, const Option& b) { return a.name < b.name; });
         lines << "typeset -g -a A_" << ident << "_" << i << "_opts\n";
         lines << "A_" << ident << "_" << i << "_opts=(";
         lines << '\'' << esc_shell_single_quoted(k_help_long) << ':'
@@ -72,20 +70,24 @@ inline std::string emit_scope_arrays(std::string_view ident, const std::vector<S
                 lab = "--" + o.name + "=<string>";
                 break;
             }
-            lines << " '" << esc_shell_single_quoted(lab) << ':' << esc_shell_single_quoted(o.description) << '\'';
+            lines << " '" << esc_shell_single_quoted(lab) << ':'
+                  << esc_shell_single_quoted(o.description) << '\'';
             if (o.short_name != '\0') {
                 lines << " '" << esc_shell_single_quoted(std::string{'-', o.short_name}) << ':'
                       << esc_shell_single_quoted(o.description) << '\'';
             }
         }
         lines << ")\n";
-        lines << "typeset -g A_" << ident << "_" << i << "_leaf=" << (sc.kids.empty() ? "1" : "0") << "\n";
-        lines << "typeset -g A_" << ident << "_" << i << "_pos=" << (sc.wants_files ? "1" : "0") << "\n";
+        lines << "typeset -g A_" << ident << "_" << i << "_leaf=" << (sc.kids.empty() ? "1" : "0")
+              << "\n";
+        lines << "typeset -g A_" << ident << "_" << i << "_pos=" << (sc.wants_files ? "1" : "0")
+              << "\n";
     }
     return lines.str();
 }
 
-inline std::string emit_consume_long_zsh(std::string_view ident, const std::vector<ScopeRec>& scopes) {
+inline std::string emit_consume_long_zsh(std::string_view ident,
+                                         const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
     o << "_" << ident << "_nac_consume_long() {\n";
     o << "  local sid=\"$1\" w=\"$2\" nw=\"$3\"\n";
@@ -94,7 +96,8 @@ inline std::string emit_consume_long_zsh(std::string_view ident, const std::vect
         const auto& sc = scopes[i];
         o << "    " << i << ")\n";
         o << "      case $w in\n";
-        o << "        " << k_help_long << "|" << k_help_long << "=*|" << k_help_short << ") echo 1 ;;\n";
+        o << "        " << k_help_long << "|" << k_help_long << "=*|" << k_help_short
+          << ") echo 1 ;;\n";
         for (const auto& op : sc.opts) {
             if (op.positional) {
                 continue;
@@ -117,7 +120,8 @@ inline std::string emit_consume_long_zsh(std::string_view ident, const std::vect
     return o.str();
 }
 
-inline std::string emit_consume_short_zsh(std::string_view ident, const std::vector<ScopeRec>& scopes) {
+inline std::string emit_consume_short_zsh(std::string_view ident,
+                                          const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
     o << "_" << ident << "_nac_consume_short() {\n";
     o << "  local sid=\"$1\" w=\"$2\"\n";
@@ -163,10 +167,8 @@ inline std::string emit_consume_short_zsh(std::string_view ident, const std::vec
     return o.str();
 }
 
-inline std::string emit_match_child_zsh(
-    std::string_view ident,
-    const std::vector<ScopeRec>& scopes,
-    const std::unordered_map<std::string, int>& path_index) {
+inline std::string emit_match_child_zsh(std::string_view ident, const std::vector<ScopeRec>& scopes,
+                                        const std::unordered_map<std::string, int>& path_index) {
     std::ostringstream o;
     o << "_" << ident << "_nac_match_child() {\n";
     o << "  local sid=\"$1\" w=\"$2\"\n";

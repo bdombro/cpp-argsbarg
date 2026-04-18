@@ -71,11 +71,13 @@ inline const Option* find_opt(const std::vector<Option>& defs, std::string_view 
 
 } // namespace
 
-[[nodiscard]] inline const Command* find_child(const std::vector<Command>& cmds, std::string_view name) {
+[[nodiscard]] inline const Command* find_child(const std::vector<Command>& cmds,
+                                               std::string_view name) {
     return find_cmd(cmds, name);
 }
 
-[[nodiscard]] inline const Option* find_option_by_name(const std::vector<Option>& defs, std::string_view name) {
+[[nodiscard]] inline const Option* find_option_by_name(const std::vector<Option>& defs,
+                                                       std::string_view name) {
     return find_opt(defs, name);
 }
 

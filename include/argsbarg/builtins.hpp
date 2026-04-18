@@ -22,12 +22,16 @@ inline constexpr const char* k_builtin_zsh = "zsh";
     schema.commands.push_back(
         Group{k_builtin_completion, "Generate the autocompletion script for shells."}
             .child(Leaf{k_builtin_bash, "Generate the autocompletion script for bash."}
-                .handler(Handler{[](Context&) {}})
-                .notes("Writes the completion script to stdout. Save to a file and source it from ~/.bashrc."))
+                       .handler(Handler{[](Context&) {}})
+                       .notes("Writes the completion script to stdout. Save to a file and source "
+                              "it from ~/.bashrc."))
             .child(Leaf{k_builtin_zsh, "Generate the autocompletion script for zsh."}
-                .handler(Handler{[](Context&) {}})
-                .option(Opt{"print", "Print script to stdout instead of installing to ~/.zsh/completions/."})
-                .notes("Without --print, writes to ~/.zsh/completions/_{app}. Use --print to write to stdout.")));
+                       .handler(Handler{[](Context&) {}})
+                       .option(Opt{
+                           "print",
+                           "Print script to stdout instead of installing to ~/.zsh/completions/."})
+                       .notes("Without --print, writes to ~/.zsh/completions/_{app}. Use --print "
+                              "to write to stdout.")));
     return schema;
 }
 

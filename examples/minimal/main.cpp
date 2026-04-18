@@ -16,8 +16,8 @@ int main(int argc, const char* argv[]) {
         .description("Tiny demo.")
         .fallback("hello", FallbackMode::MissingOrUnknown)
         .command(Leaf{"hello", "Say hello."}
-            .handler(greet)
-            .option(Opt{"name", "Who to greet."}.string().short_alias('n'))
-            .option(Opt{"verbose", "Enable extra logging."}.short_alias('v')))
+                     .handler(greet)
+                     .option(Opt{"name", "Who to greet."}.string().short_alias('n'))
+                     .option(Opt{"verbose", "Enable extra logging."}.short_alias('v')))
         .run(argc, argv);
 }

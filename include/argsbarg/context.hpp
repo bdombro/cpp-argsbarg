@@ -18,17 +18,11 @@ class Context {
     [[nodiscard]] const std::vector<std::string>& args() const { return args_; }
     [[nodiscard]] const Schema& schema() const { return *schema_; }
 
-    Context(
-        std::string app_name,
-        std::vector<std::string> command_path,
-        std::unordered_map<std::string, std::string> opts,
-        std::vector<std::string> args,
-        const Schema& merged_schema)
-        : app_name_(std::move(app_name)),
-          command_path_(std::move(command_path)),
-          opts_(std::move(opts)),
-          args_(std::move(args)),
-          schema_(&merged_schema) {}
+    Context(std::string app_name, std::vector<std::string> command_path,
+            std::unordered_map<std::string, std::string> opts, std::vector<std::string> args,
+            const Schema& merged_schema)
+        : app_name_(std::move(app_name)), command_path_(std::move(command_path)),
+          opts_(std::move(opts)), args_(std::move(args)), schema_(&merged_schema) {}
 
     [[nodiscard]] bool flag(std::string_view name) const {
         const auto it = opts_.find(std::string{name});

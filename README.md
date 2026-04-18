@@ -10,17 +10,26 @@ _____ _______  ____  _____\_ |__ _____ _______  ____
 
 # argsbarg
 
-**argsbarg** is a small C++23 header-only toolkit for pretty CLIs with sh completions. 
+[![CI](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml/badge.svg)](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-- Features:
-  - Nested subcommands
-  - POSIX-style options
-  - Arg/Option validation
-  - Contextual help
-  - Default-command fallback
-  - Shell completion scripts
-  - NO macros
-  - **no third-party runtime dependencies**
+Build beautiful, well-behaved CLI apps in modern C++ — no macros, no runtime dependencies, just a single header.
+
+Everything you need for a first-class CLI:
+
+- Nested subcommands
+- POSIX-style options (`-x`, `--long`, `--long=value`)
+- Arg/option validation with contextual error messages
+- Scoped help at any routing depth
+- Default-command fallback
+- Bash and zsh completion scripts — generated at runtime, no extra tooling
+- Zero macros, zero third-party runtime dependencies
+
+## Platforms and stability
+
+- **Platforms:** **Linux** and **macOS** (POSIX). The headers use POSIX APIs for TTY detection and completion install paths; Windows isn't in scope for this release line.
+- **CMake:** 3.21+ (`find_package` config + install).
+- **API stability:** pre-1.0 SemVer — minor versions may include breaking changes. See [`CHANGELOG.md`](CHANGELOG.md) and [`feature-spec.md`](feature-spec.md) for details.
 
 ---
 
@@ -67,9 +76,10 @@ include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
     GIT_TAG        v0.2.0)
-# Optional: skip Catch2 download and example builds
-set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(ARGSBARG_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
+# When embedding, examples and tests default to OFF (set ON if you want them).
+# You can still force them OFF explicitly:
+# set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+# set(ARGSBARG_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(argsbarg)
 
 target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
@@ -96,14 +106,22 @@ Or from inside the repo: `PREFIX="$HOME/.local" just install`.
 
 ```cmake
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local") # match your install prefix
-find_package(argsbarg CONFIG REQUIRED)             # append e.g. 0.1.3 to pin the version
+find_package(argsbarg 0.2.0 CONFIG REQUIRED)
 
 target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
 ```
 
-### Option 3 — vcpkg / Conan
+The imported target **`argsbarg::argsbarg`** propagates **C++23** via `INTERFACE` compile features.
 
-Once a port/recipe exists, consumers can install with `vcpkg install argsbarg` or `conan install argsbarg/[>=0.1 <1]`. See the maintainer guides for [vcpkg](https://learn.microsoft.com/en-us/vcpkg/contributing/maintainer-guide) and [Conan Center](https://github.com/conan-io/conan-center-index/blob/master/docs/how_to_add_packages.md).
+### Option 3 — Conan (optional)
+
+This repository ships a **Conan 2** recipe ([`conanfile.py`](conanfile.py)) and [`test_package/`](test_package/) for local validation:
+
+```bash
+conan create . --build=missing -s compiler.cppstd=23
+```
+
+To publish on **Conan Center**, contribute a recipe via [conan-center-index](https://github.com/conan-io/conan-center-index/blob/master/docs/how_to_add_packages.md) (often based on the in-repo `conanfile.py`).
 
 ---
 
@@ -121,8 +139,10 @@ The top-level name `completion` is reserved for the built-in group.
 
 ## How it works
 
+There are really only three concepts to learn:
+
 1. Describe a tree with `Group` / `Leaf` and `Opt` / `Arg` fluent builders (see [`include/argsbarg/builders.hpp`](include/argsbarg/builders.hpp)).
-2. `Application::run` or `run(schema, argc, argv)` merges built-ins, validates the schema, parses argv, renders help or errors, dispatches the leaf handler, and `std::exit`s with the codes in `feature-spec.md` §8.
+2. `Application::run` or `run(schema, argc, argv)` merges built-ins, validates the schema, parses argv, renders help or errors, dispatches the leaf handler, and `std::exit`s with the codes in [`feature-spec.md`](feature-spec.md) §8.
 3. From a handler, `err_with_help(ctx, "message")` prints a red error line plus contextual help on stderr and exits with status 1.
 4. `parse(merged_schema, argv_words)` and `help_render(merged_schema, path)` are pure helpers for tests and custom hosts (no I/O, no exit).
 
@@ -134,7 +154,7 @@ The top-level name `completion` is reserved for the built-in group.
 | `MissingOrUnknown` | Default command | Default command (token becomes argv for the default) |
 | `UnknownOnly` | Root help (exit 1) | Default command |
 
-With `MissingOrUnknown` / `UnknownOnly`, unrecognized **root** flags stop root-flag consumption and the remainder is passed to the default command (see `feature-spec.md` §5.3).
+With `MissingOrUnknown` / `UnknownOnly`, unrecognized **root** flags stop root-flag consumption and the remainder is passed to the default command (see [`feature-spec.md`](feature-spec.md) §5.3).
 
 ### Positionals (help labels)
 
@@ -203,6 +223,12 @@ myapp completion zsh                                 # install under ~/.zsh/comp
 | [`include/argsbarg/builtins.hpp`](include/argsbarg/builtins.hpp) | `merge_builtins`, completion path helpers. |
 | [`include/argsbarg/completion.hpp`](include/argsbarg/completion.hpp) | `completion_*_script`, zsh install helper. |
 | [`include/argsbarg/schema_error.hpp`](include/argsbarg/schema_error.hpp) | `SchemaError` (`std::logic_error`). |
+
+---
+
+## Contributing
+
+Contributions welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md). Security reports: [`SECURITY.md`](SECURITY.md). Community standards: [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md).
 
 ---
 

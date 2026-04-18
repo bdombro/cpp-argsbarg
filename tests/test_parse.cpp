@@ -1,5 +1,4 @@
 #include <argsbarg/argsbarg.hpp>
-
 #include <catch2/catch_test_macros.hpp>
 
 using namespace argsbarg;
@@ -33,9 +32,9 @@ TEST_CASE("parse explicit help at root") {
 TEST_CASE("parse short option bundle for presence flags") {
     Schema s{.name = "app", .description = "d"};
     s.commands.push_back(Leaf{"x", ""}
-        .handler([](Context&) {})
-        .option(Opt{"a", ""}.short_alias('a'))
-        .option(Opt{"b", ""}.short_alias('b')));
+                             .handler([](Context&) {})
+                             .option(Opt{"a", ""}.short_alias('a'))
+                             .option(Opt{"b", ""}.short_alias('b')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     auto pr = post_parse_validate(m, parse(m, {"x", "-ab"}));
@@ -46,7 +45,8 @@ TEST_CASE("parse short option bundle for presence flags") {
 
 TEST_CASE("parse long option equals form") {
     Schema s{.name = "app", .description = "d"};
-    s.commands.push_back(Leaf{"x", ""}.handler([](Context&) {}).option(Opt{"name", ""}.string().short_alias('n')));
+    s.commands.push_back(
+        Leaf{"x", ""}.handler([](Context&) {}).option(Opt{"name", ""}.string().short_alias('n')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     auto pr = post_parse_validate(m, parse(m, {"x", "--name=pat"}));
@@ -63,8 +63,13 @@ TEST_CASE("parse routes to known command") {
 }
 
 TEST_CASE("parse MissingOrUnknown routes unknown first token to default") {
-    Schema s{.name = "app", .description = "d", .fallback_command = "hello", .fallback_mode = FallbackMode::MissingOrUnknown};
-    s.commands.push_back(Leaf{"hello", "h"}.handler([](Context&) {}).option(Opt{"name", ""}.string().short_alias('n')));
+    Schema s{.name = "app",
+             .description = "d",
+             .fallback_command = "hello",
+             .fallback_mode = FallbackMode::MissingOrUnknown};
+    s.commands.push_back(Leaf{"hello", "h"}
+                             .handler([](Context&) {})
+                             .option(Opt{"name", ""}.string().short_alias('n')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     auto pr = post_parse_validate(m, parse(m, {"--name", "bob"}));
@@ -74,7 +79,10 @@ TEST_CASE("parse MissingOrUnknown routes unknown first token to default") {
 }
 
 TEST_CASE("parse MissingOnly errors on unknown command") {
-    Schema s{.name = "app", .description = "d", .fallback_command = "hello", .fallback_mode = FallbackMode::MissingOnly};
+    Schema s{.name = "app",
+             .description = "d",
+             .fallback_command = "hello",
+             .fallback_mode = FallbackMode::MissingOnly};
     s.commands.push_back(Leaf{"hello", "h"}.handler([](Context&) {}));
     const auto m = merge_builtins(s);
     schema_validate(m);
@@ -83,7 +91,10 @@ TEST_CASE("parse MissingOnly errors on unknown command") {
 }
 
 TEST_CASE("parse UnknownOnly empty argv yields implicit help") {
-    Schema s{.name = "app", .description = "d", .fallback_command = "hello", .fallback_mode = FallbackMode::UnknownOnly};
+    Schema s{.name = "app",
+             .description = "d",
+             .fallback_command = "hello",
+             .fallback_mode = FallbackMode::UnknownOnly};
     s.commands.push_back(Leaf{"hello", "h"}.handler([](Context&) {}));
     const auto m = merge_builtins(s);
     schema_validate(m);
@@ -122,7 +133,8 @@ TEST_CASE("parse implicit help when routing node has no subcommand") {
 
 TEST_CASE("parse errors on missing value for short string option") {
     Schema s{.name = "app", .description = "d"};
-    s.commands.push_back(Leaf{"x", ""}.handler([](Context&) {}).option(Opt{"name", ""}.string().short_alias('n')));
+    s.commands.push_back(
+        Leaf{"x", ""}.handler([](Context&) {}).option(Opt{"name", ""}.string().short_alias('n')));
     const auto m = merge_builtins(s);
     schema_validate(m);
     auto pr = parse(m, {"x", "-n"});

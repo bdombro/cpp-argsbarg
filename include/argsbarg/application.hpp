@@ -12,9 +12,7 @@ void run(const Schema& schema, int argc, const char* const argv[]);
 
 class Application {
   public:
-    explicit Application(std::string app_name) {
-        schema_.name = std::move(app_name);
-    }
+    explicit Application(std::string app_name) { schema_.name = std::move(app_name); }
 
     [[nodiscard]] Application& description(std::string desc) {
         schema_.description = std::move(desc);

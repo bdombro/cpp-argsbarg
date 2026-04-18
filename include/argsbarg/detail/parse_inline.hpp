@@ -39,12 +39,9 @@ struct ConsumeReport {
     bool stopped_on_unknown{false};
 };
 
-ConsumeReport consume_options(
-    const std::vector<Option>& defs,
-    bool lenient_unknown,
-    std::size_t& i,
-    const std::vector<std::string>& argv,
-    std::unordered_map<std::string, std::string>& opts) {
+ConsumeReport consume_options(const std::vector<Option>& defs, bool lenient_unknown, std::size_t& i,
+                              const std::vector<std::string>& argv,
+                              std::unordered_map<std::string, std::string>& opts) {
 
     auto consume_long = [&](std::string_view tok) -> std::optional<std::string> {
         // returns nullopt on ok, error message on err, use sentinel for lenient stop - encode as
@@ -148,12 +145,9 @@ ConsumeReport consume_options(
     return {};
 }
 
-ParseResult finish_leaf(
-    const Command& node,
-    std::size_t& i,
-    const std::vector<std::string>& argv,
-    const std::vector<std::string>& path,
-    const std::unordered_map<std::string, std::string>& opts) {
+ParseResult finish_leaf(const Command& node, std::size_t& i, const std::vector<std::string>& argv,
+                        const std::vector<std::string>& path,
+                        const std::unordered_map<std::string, std::string>& opts) {
 
     auto error_result = [&](std::string msg) {
         ParseResult pr;
@@ -196,9 +190,8 @@ ParseResult finish_leaf(
             }
         }
         if (count < p.arg_min) {
-            return error_result(
-                "Expected at least " + std::to_string(p.arg_min) + " argument(s) for " + p.name +
-                ", got " + std::to_string(count));
+            return error_result("Expected at least " + std::to_string(p.arg_min) +
+                                " argument(s) for " + p.name + ", got " + std::to_string(count));
         }
     }
     if (i < argv.size()) {
@@ -236,8 +229,8 @@ inline ParseResult parse(const Schema& schema, const std::vector<std::string>& a
     };
 
     const bool root_lenient = schema.fallback_command.has_value() &&
-        (schema.fallback_mode == FallbackMode::MissingOrUnknown ||
-         schema.fallback_mode == FallbackMode::UnknownOnly);
+                              (schema.fallback_mode == FallbackMode::MissingOrUnknown ||
+                               schema.fallback_mode == FallbackMode::UnknownOnly);
 
     const auto root_rep = consume_options(schema.options, root_lenient, i, argv, opts);
     if (root_rep.err.has_value()) {
@@ -269,7 +262,8 @@ inline ParseResult parse(const Schema& schema, const std::vector<std::string>& a
     } else {
         const auto& peek = argv[i];
         const auto* child_pick = find_child(schema.commands, peek);
-        const bool can_route_unknown_to_default = schema.fallback_command.has_value() &&
+        const bool can_route_unknown_to_default =
+            schema.fallback_command.has_value() &&
             (schema.fallback_mode == FallbackMode::MissingOrUnknown ||
              schema.fallback_mode == FallbackMode::UnknownOnly);
 
@@ -396,14 +390,15 @@ void check_options(const std::vector<Option>& defs, const std::string& scope) {
             continue;
         }
         if (d.positional) {
-            throw SchemaError("Positional arguments must not define short aliases: " + scope + "/" + d.name);
+            throw SchemaError("Positional arguments must not define short aliases: " + scope + "/" +
+                              d.name);
         }
         if (d.short_name == 'h') {
             throw SchemaError("Short alias -h is reserved for help: " + scope + "/" + d.name);
         }
         if (seen_shorts.contains(d.short_name)) {
-            throw SchemaError(
-                "Duplicate short alias -" + std::string(1, d.short_name) + " in scope " + scope);
+            throw SchemaError("Duplicate short alias -" + std::string(1, d.short_name) +
+                              " in scope " + scope);
         }
         seen_shorts.insert(d.short_name);
     }
@@ -422,10 +417,12 @@ void check_positionals(const std::vector<Option>& defs, const std::string& scope
             throw SchemaError("argMin must be >= 0 for positional " + scope + "/" + d.name);
         }
         if (d.arg_max < 0) {
-            throw SchemaError("argMax must be >= 0 (use 0 for unlimited) for positional " + scope + "/" + d.name);
+            throw SchemaError("argMax must be >= 0 (use 0 for unlimited) for positional " + scope +
+                              "/" + d.name);
         }
         if (d.arg_max > 0 && d.arg_min > d.arg_max) {
-            throw SchemaError("argMin must not exceed argMax for positional " + scope + "/" + d.name);
+            throw SchemaError("argMin must not exceed argMax for positional " + scope + "/" +
+                              d.name);
         }
         if (idx + 1 < pos.size() && d.arg_max == 0) {
             throw SchemaError("Unlimited positional (argMax == 0) must be last in scope " + scope);

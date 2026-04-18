@@ -138,9 +138,11 @@ inline std::string opt_kind_label(OptionKind k) {
 inline std::string option_label(const Option& o, bool color) {
     if (o.positional) {
         if (o.arg_max == 1) {
-            return (o.arg_min == 0 ? std::string("[") + o.name + "]" : std::string("<") + o.name + ">");
+            return (o.arg_min == 0 ? std::string("[") + o.name + "]"
+                                   : std::string("<") + o.name + ">");
         }
-        return (o.arg_min == 0 ? std::string("[") + o.name + "...]" : std::string("<") + o.name + "...>");
+        return (o.arg_min == 0 ? std::string("[") + o.name + "...]"
+                               : std::string("<") + o.name + "...>");
     }
     std::string r = "--" + o.name + opt_kind_label(o.kind);
     if (o.short_name != '\0') {
@@ -163,13 +165,14 @@ struct HelpRow {
     std::string description;
 };
 
-inline std::vector<std::string> render_text_box(std::string_view title, const std::vector<std::string>& lines, int hw, bool color) {
+inline std::vector<std::string>
+render_text_box(std::string_view title, const std::vector<std::string>& lines, int hw, bool color) {
     if (lines.empty()) {
         return {};
     }
     std::string title_lead =
-        (color ? style::gray(std::string{k_box_h} + " ") + style::bold(style::gray(std::string{title})) +
-                style::gray(" ")
+        (color ? style::gray(std::string{k_box_h} + " ") +
+                     style::bold(style::gray(std::string{title})) + style::gray(" ")
                : std::string{k_box_h} + " " + std::string{title} + " ");
     int content_width = visible_width(title_lead) + 1;
     for (const auto& line : lines) {
@@ -180,25 +183,24 @@ inline std::vector<std::string> render_text_box(std::string_view title, const st
     const int border_width = content_width + 2;
     const int header_fill = std::max(1, border_width - visible_width(title_lead));
     std::vector<std::string> out;
-    out.push_back(
-        (color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) + title_lead +
-        (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
-               : repeat_box_h(header_fill) + std::string{k_box_tr}));
+    out.push_back((color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) +
+                  title_lead +
+                  (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
+                         : repeat_box_h(header_fill) + std::string{k_box_tr}));
     for (const auto& line : lines) {
-        out.push_back(
-            (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " + pad_visible(line, content_width) +
-            " " + (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
+        out.push_back((color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " +
+                      pad_visible(line, content_width) + " " +
+                      (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
     }
-    out.push_back(color ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br})
-                        : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
+    out.push_back(color
+                      ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) +
+                                    std::string{k_box_br})
+                      : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
     return out;
 }
 
-inline std::vector<std::string> render_table_box(
-    std::string_view title,
-    const std::vector<HelpRow>& rows,
-    int hw,
-    bool color) {
+inline std::vector<std::string>
+render_table_box(std::string_view title, const std::vector<HelpRow>& rows, int hw, bool color) {
     if (rows.empty()) {
         return {};
     }
@@ -206,26 +208,25 @@ inline std::vector<std::string> render_table_box(
     for (const auto& row : rows) {
         label_width = std::max(label_width, visible_width(row.label));
     }
-    const int minimum_content_width =
-        std::max(static_cast<int>(visible_width(std::string{k_box_h} + " " + std::string{title} + " ")) + 1, label_width + 2 + 18);
+    const int minimum_content_width = std::max(
+        static_cast<int>(visible_width(std::string{k_box_h} + " " + std::string{title} + " ")) + 1,
+        label_width + 2 + 18);
     int content_width = std::max(hw - 2, minimum_content_width);
     const int desc_width = std::max(1, content_width - label_width - 2);
     std::vector<std::string> body_lines;
     for (const auto& row : rows) {
         const auto wrapped = wrap_text(row.description, desc_width);
-        const std::string first =
-            row.label + spaces(label_width - visible_width(row.label)) + "  " +
-            (color ? style::white(wrapped.front()) : wrapped.front());
+        const std::string first = row.label + spaces(label_width - visible_width(row.label)) +
+                                  "  " + (color ? style::white(wrapped.front()) : wrapped.front());
         body_lines.push_back(first);
         for (std::size_t idx = 1; idx < wrapped.size(); ++idx) {
-            body_lines.push_back(
-                (color ? style::gray(spaces(label_width)) : spaces(label_width)) + "  " +
-                (color ? style::white(wrapped[idx]) : wrapped[idx]));
+            body_lines.push_back((color ? style::gray(spaces(label_width)) : spaces(label_width)) +
+                                 "  " + (color ? style::white(wrapped[idx]) : wrapped[idx]));
         }
     }
     std::string title_lead =
-        (color ? style::gray(std::string{k_box_h} + " ") + style::bold(style::gray(std::string{title})) +
-                style::gray(" ")
+        (color ? style::gray(std::string{k_box_h} + " ") +
+                     style::bold(style::gray(std::string{title})) + style::gray(" ")
                : std::string{k_box_h} + " " + std::string{title} + " ");
     content_width = std::max(content_width, visible_width(title_lead) + 1);
     for (const auto& line : body_lines) {
@@ -235,26 +236,25 @@ inline std::vector<std::string> render_table_box(
     const int border_width = content_width + 2;
     const int header_fill = std::max(1, border_width - visible_width(title_lead));
     std::vector<std::string> out;
-    out.push_back(
-        (color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) + title_lead +
-        (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
-               : repeat_box_h(header_fill) + std::string{k_box_tr}));
+    out.push_back((color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) +
+                  title_lead +
+                  (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
+                         : repeat_box_h(header_fill) + std::string{k_box_tr}));
     for (const auto& line : body_lines) {
-        out.push_back(
-            (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " + pad_visible(line, content_width) +
-            " " + (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
+        out.push_back((color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " +
+                      pad_visible(line, content_width) + " " +
+                      (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
     }
-    out.push_back(color ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br})
-                        : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
+    out.push_back(color
+                      ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) +
+                                    std::string{k_box_br})
+                      : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
     return out;
 }
 
-inline std::vector<std::string> usage_lines(
-    const std::string& app_name,
-    const std::vector<std::string>& help_path,
-    bool has_commands,
-    bool has_args,
-    bool color) {
+inline std::vector<std::string> usage_lines(const std::string& app_name,
+                                            const std::vector<std::string>& help_path,
+                                            bool has_commands, bool has_args, bool color) {
     std::string full_path = app_name;
     for (const auto& seg : help_path) {
         full_path += " ";
@@ -304,7 +304,8 @@ inline std::vector<HelpRow> rows_for_positionals(const std::vector<Option>& defs
 
 inline std::vector<HelpRow> rows_for_subcommands(const std::vector<Command>& cmds) {
     auto sorted = cmds;
-    std::sort(sorted.begin(), sorted.end(), [](const Command& a, const Command& b) { return a.name < b.name; });
+    std::sort(sorted.begin(), sorted.end(),
+              [](const Command& a, const Command& b) { return a.name < b.name; });
     std::vector<HelpRow> rows;
     for (const auto& c : sorted) {
         rows.push_back({c.name, c.description});
@@ -323,7 +324,8 @@ inline std::string join_lines(const std::vector<std::string>& lines, const std::
     return oss.str();
 }
 
-inline std::string help_render_for_fd(const Schema& schema, const std::vector<std::string>& help_path, int tty_fd_num) {
+inline std::string help_render_for_fd(const Schema& schema,
+                                      const std::vector<std::string>& help_path, int tty_fd_num) {
     const int hw = help_width_fd(tty_fd_num);
     const bool color = tty_fd(tty_fd_num);
 
@@ -334,14 +336,14 @@ inline std::string help_render_for_fd(const Schema& schema, const std::vector<st
             lines.push_back(color ? style::white(schema.description) : schema.description);
             lines.push_back("");
         }
-        lines.push_back(join_lines(
-            render_text_box(
-                "Usage",
-                usage_lines(schema.name, help_path, !schema.commands.empty(), false, color),
-                hw,
-                color),
-            "\n"));
-        const auto opt_box = render_table_box("Options", rows_for_options(schema.options, color), hw, color);
+        lines.push_back(
+            join_lines(render_text_box("Usage",
+                                       usage_lines(schema.name, help_path, !schema.commands.empty(),
+                                                   false, color),
+                                       hw, color),
+                       "\n"));
+        const auto opt_box =
+            render_table_box("Options", rows_for_options(schema.options, color), hw, color);
         if (!opt_box.empty()) {
             lines.push_back("");
             lines.push_back(join_lines(opt_box, "\n"));
@@ -349,7 +351,8 @@ inline std::string help_render_for_fd(const Schema& schema, const std::vector<st
         if (!schema.commands.empty()) {
             lines.push_back("");
             lines.push_back(join_lines(
-                render_table_box("Commands", rows_for_subcommands(schema.commands), hw, color), "\n"));
+                render_table_box("Commands", rows_for_subcommands(schema.commands), hw, color),
+                "\n"));
         }
         return join_lines(lines, "\n") + "\n\n";
     }
@@ -359,7 +362,8 @@ inline std::string help_render_for_fd(const Schema& schema, const std::vector<st
     for (const auto& seg : help_path) {
         const auto* ch = find_child(*layer, seg);
         if (ch == nullptr) {
-            return (color ? style::red("Unknown help path.") : std::string{"Unknown help path."}) + "\n";
+            return (color ? style::red("Unknown help path.") : std::string{"Unknown help path."}) +
+                   "\n";
         }
         node = ch;
         layer = &ch->children;
@@ -371,30 +375,27 @@ inline std::string help_render_for_fd(const Schema& schema, const std::vector<st
         lines.push_back(color ? style::white(node->description) : node->description);
         lines.push_back("");
     }
-    lines.push_back(join_lines(
-        render_text_box(
-            "Usage",
-            usage_lines(
-                schema.name,
-                help_path,
-                !node->children.empty(),
-                !node->positionals.empty(),
-                color),
-            hw,
-            color),
-        "\n"));
+    lines.push_back(
+        join_lines(render_text_box("Usage",
+                                   usage_lines(schema.name, help_path, !node->children.empty(),
+                                               !node->positionals.empty(), color),
+                                   hw, color),
+                   "\n"));
 
-    const auto opt_box = render_table_box("Options", rows_for_options(node->options, color), hw, color);
+    const auto opt_box =
+        render_table_box("Options", rows_for_options(node->options, color), hw, color);
     if (!opt_box.empty()) {
         lines.push_back("");
         lines.push_back(join_lines(opt_box, "\n"));
     }
-    const auto pos_box = render_table_box("Arguments", rows_for_positionals(node->positionals, color), hw, color);
+    const auto pos_box =
+        render_table_box("Arguments", rows_for_positionals(node->positionals, color), hw, color);
     if (!pos_box.empty()) {
         lines.push_back("");
         lines.push_back(join_lines(pos_box, "\n"));
     }
-    const auto sub_box = render_table_box("Subcommands", rows_for_subcommands(node->children), hw, color);
+    const auto sub_box =
+        render_table_box("Subcommands", rows_for_subcommands(node->children), hw, color);
     if (!sub_box.empty()) {
         lines.push_back("");
         lines.push_back(join_lines(sub_box, "\n"));
@@ -409,7 +410,8 @@ inline std::string help_render_for_fd(const Schema& schema, const std::vector<st
             resolved.replace(pos, 5, schema.name);
         }
         lines.push_back("");
-        lines.push_back(join_lines(render_text_box("Notes", wrap_text(resolved, hw - 4), hw, color), "\n"));
+        lines.push_back(
+            join_lines(render_text_box("Notes", wrap_text(resolved, hw - 4), hw, color), "\n"));
     }
     return join_lines(lines, "\n") + "\n\n";
 }
@@ -420,7 +422,8 @@ inline std::string help_render(const Schema& schema, const std::vector<std::stri
     return help_fmt_detail::help_render_for_fd(schema, help_path, STDOUT_FILENO);
 }
 
-inline std::string help_render_stderr(const Schema& schema, const std::vector<std::string>& help_path) {
+inline std::string help_render_stderr(const Schema& schema,
+                                      const std::vector<std::string>& help_path) {
     return help_fmt_detail::help_render_for_fd(schema, help_path, STDERR_FILENO);
 }
 } // namespace argsbarg

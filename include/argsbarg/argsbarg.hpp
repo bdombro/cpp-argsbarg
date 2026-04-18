@@ -1,11 +1,5 @@
 #pragma once
 
-#include <cstdlib>
-#include <iostream>
-#include <unistd.h>
-#include <utility>
-#include <vector>
-
 #include "argsbarg/application.hpp"
 #include "argsbarg/builders.hpp"
 #include "argsbarg/builtins.hpp"
@@ -16,10 +10,18 @@
 #include "argsbarg/schema.hpp"
 #include "argsbarg/schema_error.hpp"
 
+#include <cstdlib>
+#include <iostream>
+#include <unistd.h>
+#include <utility>
+#include <vector>
+
 namespace argsbarg {
 
 /// Library version string (semver-style).
-[[nodiscard]] inline constexpr const char* version() noexcept { return "0.2.0"; }
+[[nodiscard]] inline constexpr const char* version() noexcept {
+    return "0.2.0";
+}
 
 inline void run(const Schema& schema, int argc, const char* const argv[]) {
     const Schema merged = merge_builtins(schema);

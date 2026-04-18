@@ -26,9 +26,9 @@ class Opt {
 class Arg {
   public:
     Arg(std::string name, std::string desc);
-    Arg& optional();    // arg_min = 0 (default is required: arg_min = 1)
-    Arg& min(int n);    // list mode: sets arg_min and arg_max = 0 (unlimited) until @ref max
-    Arg& max(int n);    // cap the tail length; 0 = unlimited
+    Arg& optional(); // arg_min = 0 (default is required: arg_min = 1)
+    Arg& min(int n); // list mode: sets arg_min and arg_max = 0 (unlimited) until @ref max
+    Arg& max(int n); // cap the tail length; 0 = unlimited
     [[nodiscard]] operator Option() const;
 
   private:

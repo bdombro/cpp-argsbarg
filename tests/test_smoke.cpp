@@ -1,13 +1,11 @@
 #include <argsbarg/argsbarg.hpp>
-
 #include <catch2/catch_test_macros.hpp>
-
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
-#include <sys/wait.h>
 #include <string>
+#include <sys/wait.h>
 
 using namespace argsbarg;
 
@@ -61,8 +59,8 @@ TEST_CASE("bash completion script syntax") {
     schema_validate(m);
     const auto script = completion_bash_script(m);
     const auto base = std::getenv("TMPDIR") ? std::getenv("TMPDIR") : "/tmp";
-    const auto path =
-        std::string{base} + "/argsbarg_bash_n_" + std::to_string(reinterpret_cast<std::uintptr_t>(&script)) + ".sh";
+    const auto path = std::string{base} + "/argsbarg_bash_n_" +
+                      std::to_string(reinterpret_cast<std::uintptr_t>(&script)) + ".sh";
     {
         std::ofstream out(path, std::ios::trunc | std::ios::binary);
         REQUIRE(out);
