@@ -66,7 +66,7 @@ CMake downloads the source at configure time and builds it alongside your projec
 include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
-    GIT_TAG        v0.1.3)
+    GIT_TAG        v0.2.0)
 # Optional: skip Catch2 download and example builds
 set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(ARGSBARG_BUILD_TESTS    OFF CACHE BOOL "" FORCE)

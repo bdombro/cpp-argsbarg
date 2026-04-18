@@ -19,7 +19,7 @@
 namespace argsbarg {
 
 /// Library version string (semver-style).
-[[nodiscard]] inline constexpr const char* version() noexcept { return "0.1.3"; }
+[[nodiscard]] inline constexpr const char* version() noexcept { return "0.2.0"; }
 
 inline void run(const Schema& schema, int argc, const char* const argv[]) {
     const Schema merged = merge_builtins(schema);
