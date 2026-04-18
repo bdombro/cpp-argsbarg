@@ -1,3 +1,13 @@
+```
+                          ___.                        
+_____ _______  ____  _____\_ |__ _____ _______  ____  
+\__  \\_  __ \/ ___\/  ___/| __ \\__  \\_  __ \/ ___\ 
+ / __ \|  | \/ /_/  >___ \ | \_\ \/ __ \|  | \/ /_/  >
+(____  /__|  \___  /____  >|___  (____  /__|  \___  / 
+     \/     /_____/     \/     \/     \/     /_____/  
+```
+<!-- Big money NE - https://patorjk.com/software/taag/#p=testall&f=Bulbhead&t=shebangsy&x=none&v=4&h=4&w=80&we=false> -->
+
 # argsbarg
 
 **argsbarg** is a small C++23 header-only toolkit for pretty CLIs with sh completions. 
@@ -5,6 +15,7 @@
 - Features:
   - Nested subcommands
   - POSIX-style options
+  - Arg/Option validation
   - Contextual help
   - Default-command fallback
   - Shell completion scripts
@@ -13,16 +24,7 @@
 
 ---
 
-## Quick start (CMake `FetchContent`)
-
-```cmake
-include(FetchContent)
-FetchContent_Declare(argsbarg
-    GIT_REPOSITORY https://github.com/you/cpp-argsbarg.git
-    GIT_TAG        v0.1.3)
-FetchContent_MakeAvailable(argsbarg)
-target_link_libraries(your_target PRIVATE argsbarg) # INTERFACE: adds include path + usage requirements only
-```
+## Usage
 
 ```cpp
 #include <argsbarg/argsbarg.hpp>
@@ -50,7 +52,58 @@ int main(int argc, const char* argv[]) {
 }
 ```
 
-Advanced embedders can build a raw `Schema`, call `merge_builtins` / `schema_validate`, then `argsbarg::run(schema, argc, argv)` (same pipeline as `Application::run`).
+---
+
+## Install
+
+The imported target is always `argsbarg::argsbarg`, regardless of which method you use.
+
+### Option 1 — CMake `FetchContent` (no install step)
+
+CMake downloads the source at configure time and builds it alongside your project. Good for small teams and single-repo setups.
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(argsbarg
+    GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
+    GIT_TAG        v0.1.3)
+# Optional: skip Catch2 download and example builds
+set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+set(ARGSBARG_BUILD_TESTS    OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(argsbarg)
+
+target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
+```
+
+### Option 2 — `cmake --install` + `find_package`
+
+Install once to a prefix, then any project on the machine can find it without cloning the repo.
+
+**Install:**
+
+```bash
+# Clone and install to ~/.local (or any prefix you choose)
+git clone https://github.com/bdombro/cpp-argsbarg.git
+cd cpp-argsbarg
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX="$HOME/.local"
+cmake --build build -j
+cmake --install build --component argsbarg_Development
+```
+
+Or from inside the repo: `PREFIX="$HOME/.local" just install`.
+
+**Consume:**
+
+```cmake
+list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local") # match your install prefix
+find_package(argsbarg CONFIG REQUIRED)             # append e.g. 0.1.3 to pin the version
+
+target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
+```
+
+### Option 3 — vcpkg / Conan
+
+Once a port/recipe exists, consumers can install with `vcpkg install argsbarg` or `conan install argsbarg/[>=0.1 <1]`. See the maintainer guides for [vcpkg](https://learn.microsoft.com/en-us/vcpkg/contributing/maintainer-guide) and [Conan Center](https://github.com/conan-io/conan-center-index/blob/master/docs/how_to_add_packages.md).
 
 ---
 
@@ -132,25 +185,6 @@ cd examples/minimal && just build && just run ARGS='hello -h'
 myapp completion bash > ~/.bash_completion.d/myapp   # or: source <(myapp completion bash)
 myapp completion zsh --print                         # inspect / redirect
 myapp completion zsh                                 # install under ~/.zsh/completions/
-```
-
----
-
-## Developing argsbarg
-
-```bash
-just configure    # cmake -S . -B build
-just build
-just test         # ctest --output-on-failure
-just completion-check
-just coverage     # Apple Clang: HTML under build/coverage/html/ (~85%+ line coverage on library code via tests/examples)
-just clean
-```
-
-Per-example workflows:
-
-```bash
-cd examples/minimal && just build && just run ARGS='hello --name world'
 ```
 
 ---

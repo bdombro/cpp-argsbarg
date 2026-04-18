@@ -18,7 +18,21 @@ completion-check: build
     bash -n build/_argsbarg_completion_check.sh
 
 clean:
-    rm -rf build build-coverage
+    rm -rf build build-coverage build-install
+
+# Install headers + CMake config under PREFIX (default: $HOME/.local). Example: PREFIX=/opt/myapp just install
+install:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    repo_root="{{justfile_directory()}}"
+    PREFIX="${PREFIX:-$HOME/.local}"
+    cmake -S "$repo_root" -B "$repo_root/build-install" \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DCMAKE_INSTALL_PREFIX="$PREFIX" \
+      -DARGSBARG_BUILD_EXAMPLES=OFF \
+      -DARGSBARG_BUILD_TESTS=OFF
+    cmake --build "$repo_root/build-install" -j
+    cmake --install "$repo_root/build-install" --component argsbarg_Development
 
 example-minimal *ARGS:
     just -f examples/minimal/justfile run {{ARGS}}
@@ -31,7 +45,7 @@ coverage:
     #!/usr/bin/env bash
     set -euo pipefail
     rm -rf build-coverage
-    cmake -S . -B build-coverage -DCMAKE_BUILD_TYPE=Debug -DARGS_ENABLE_COVERAGE=ON
+    cmake -S . -B build-coverage -DCMAKE_BUILD_TYPE=Debug -DARGSBARG_ENABLE_COVERAGE=ON
     cmake --build build-coverage -j
     (cd build-coverage && mkdir -p coverage/raw && LLVM_PROFILE_FILE="$PWD/coverage/raw/cov-%m.profraw" ctest --output-on-failure)
     if command -v xcrun >/dev/null 2>&1 && xcrun --find llvm-profdata >/dev/null 2>&1; then

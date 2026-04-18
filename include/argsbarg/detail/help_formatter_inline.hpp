@@ -15,6 +15,34 @@ namespace argsbarg {
 
 namespace help_fmt_detail {
 
+// UTF-8 box drawing (aligned with nim-argsbarg help.nim)
+inline constexpr std::string_view k_box_tl = "\xe2\x95\xad"; // ╭
+inline constexpr std::string_view k_box_tr = "\xe2\x95\xae"; // ╮
+inline constexpr std::string_view k_box_v = "\xe2\x94\x82";  // │
+inline constexpr std::string_view k_box_bl = "\xe2\x95\xb0"; // ╰
+inline constexpr std::string_view k_box_br = "\xe2\x95\xaf"; // ╯
+inline constexpr std::string_view k_box_h = "\xe2\x94\x80";  // ─
+
+inline std::size_t utf8_codepoint_advance(std::string_view s, std::size_t i) {
+    if (i >= s.size()) {
+        return i;
+    }
+    const unsigned char c = static_cast<unsigned char>(s[i]);
+    if (c < 0x80) {
+        return i + 1;
+    }
+    if ((c >> 5) == 0x6) {
+        return std::min(s.size(), i + 2);
+    }
+    if ((c >> 4) == 0xe) {
+        return std::min(s.size(), i + 3);
+    }
+    if ((c >> 3) == 0x1e) {
+        return std::min(s.size(), i + 4);
+    }
+    return i + 1;
+}
+
 inline int visible_width(std::string_view s) {
     int w = 0;
     for (std::size_t i = 0; i < s.size();) {
@@ -29,9 +57,18 @@ inline int visible_width(std::string_view s) {
             continue;
         }
         ++w;
-        ++i;
+        i = utf8_codepoint_advance(s, i);
     }
     return w;
+}
+
+inline std::string repeat_box_h(int n) {
+    std::string r;
+    r.reserve(k_box_h.size() * static_cast<std::size_t>(std::max(0, n)));
+    for (int k = 0; k < n; ++k) {
+        r += k_box_h;
+    }
+    return r;
 }
 
 inline std::string repeat_char(char c, int n) {
@@ -131,8 +168,9 @@ inline std::vector<std::string> render_text_box(std::string_view title, const st
         return {};
     }
     std::string title_lead =
-        (color ? style::gray("- ") + style::bold(style::gray(std::string{title})) + style::gray(" ")
-               : std::string("- ") + std::string{title} + " ");
+        (color ? style::gray(std::string{k_box_h} + " ") + style::bold(style::gray(std::string{title})) +
+                style::gray(" ")
+               : std::string{k_box_h} + " " + std::string{title} + " ");
     int content_width = visible_width(title_lead) + 1;
     for (const auto& line : lines) {
         content_width = std::max(content_width, visible_width(line));
@@ -143,16 +181,16 @@ inline std::vector<std::string> render_text_box(std::string_view title, const st
     const int header_fill = std::max(1, border_width - visible_width(title_lead));
     std::vector<std::string> out;
     out.push_back(
-        (color ? style::gray("+") : "+") + title_lead +
-        (color ? style::gray(repeat_char('-', header_fill) + "+") : repeat_char('-', header_fill) + "+"));
+        (color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) + title_lead +
+        (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
+               : repeat_box_h(header_fill) + std::string{k_box_tr}));
     for (const auto& line : lines) {
         out.push_back(
-            (color ? style::gray("|") : "|") + " " + pad_visible(line, content_width) + " " +
-            (color ? style::gray("|") : "|"));
+            (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " + pad_visible(line, content_width) +
+            " " + (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
     }
-    out.push_back(
-        (color ? style::gray("+" + repeat_char('-', border_width) + "+")
-               : "+" + repeat_char('-', border_width) + "+"));
+    out.push_back(color ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br})
+                        : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
     return out;
 }
 
@@ -169,7 +207,7 @@ inline std::vector<std::string> render_table_box(
         label_width = std::max(label_width, visible_width(row.label));
     }
     const int minimum_content_width =
-        std::max(static_cast<int>(visible_width(std::string("- ") + std::string{title} + " ")) + 1, label_width + 2 + 18);
+        std::max(static_cast<int>(visible_width(std::string{k_box_h} + " " + std::string{title} + " ")) + 1, label_width + 2 + 18);
     int content_width = std::max(hw - 2, minimum_content_width);
     const int desc_width = std::max(1, content_width - label_width - 2);
     std::vector<std::string> body_lines;
@@ -186,8 +224,9 @@ inline std::vector<std::string> render_table_box(
         }
     }
     std::string title_lead =
-        (color ? style::gray("- ") + style::bold(style::gray(std::string{title})) + style::gray(" ")
-               : std::string("- ") + std::string{title} + " ");
+        (color ? style::gray(std::string{k_box_h} + " ") + style::bold(style::gray(std::string{title})) +
+                style::gray(" ")
+               : std::string{k_box_h} + " " + std::string{title} + " ");
     content_width = std::max(content_width, visible_width(title_lead) + 1);
     for (const auto& line : body_lines) {
         content_width = std::max(content_width, visible_width(line));
@@ -197,16 +236,16 @@ inline std::vector<std::string> render_table_box(
     const int header_fill = std::max(1, border_width - visible_width(title_lead));
     std::vector<std::string> out;
     out.push_back(
-        (color ? style::gray("+") : "+") + title_lead +
-        (color ? style::gray(repeat_char('-', header_fill) + "+") : repeat_char('-', header_fill) + "+"));
+        (color ? style::gray(std::string{k_box_tl}) : std::string{k_box_tl}) + title_lead +
+        (color ? style::gray(repeat_box_h(header_fill) + std::string{k_box_tr})
+               : repeat_box_h(header_fill) + std::string{k_box_tr}));
     for (const auto& line : body_lines) {
         out.push_back(
-            (color ? style::gray("|") : "|") + " " + pad_visible(line, content_width) + " " +
-            (color ? style::gray("|") : "|"));
+            (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}) + " " + pad_visible(line, content_width) +
+            " " + (color ? style::gray(std::string{k_box_v}) : std::string{k_box_v}));
     }
-    out.push_back(
-        (color ? style::gray("+" + repeat_char('-', border_width) + "+")
-               : "+" + repeat_char('-', border_width) + "+"));
+    out.push_back(color ? style::gray(std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br})
+                        : std::string{k_box_bl} + repeat_box_h(border_width) + std::string{k_box_br});
     return out;
 }
 
