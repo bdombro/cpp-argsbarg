@@ -19,7 +19,7 @@
 include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/you/cpp-argsbarg.git
-    GIT_TAG        v0.1.0)
+    GIT_TAG        v0.1.1)
 FetchContent_MakeAvailable(argsbarg)
 target_link_libraries(your_target PRIVATE argsbarg) # INTERFACE: adds include path + usage requirements only
 ```

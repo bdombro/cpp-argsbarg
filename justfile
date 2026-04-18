@@ -107,3 +107,5 @@ release kind:
     git commit -m "chore: release v$new"
     git tag -a "v$new" -m "Release v$new"
     echo "Created commit and tag v$new. Push with: git push && git push origin v$new"
+    git push
+    git push origin v$new

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-04-18
+
+### Changed
+
+- (Summarize this release; amend commit before push if needed.)
+
 ### Changed
 
 - Library is **header-only**: implementations live under `include/argsbarg/` (with `include/argsbarg/detail/*` for large inline units). CMake exposes an **`INTERFACE`** target named `argsbarg` (no separate `.a` / `.lib` to link).
