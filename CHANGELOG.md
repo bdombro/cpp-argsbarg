@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-04-18
+
+### Changed
+
+- (Replace this stub with real release notes, then push.)
+
 ### Added
 
 - GitHub Actions workflow: configure, build, `ctest`, install smoke, and `clang-format --dry-run`.

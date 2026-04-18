@@ -20,7 +20,7 @@ namespace argsbarg {
 
 /// Library version string (semver-style).
 [[nodiscard]] inline constexpr const char* version() noexcept {
-    return "0.2.0";
+    return "0.3.0";
 }
 
 inline void run(const Schema& schema, int argc, const char* const argv[]) {

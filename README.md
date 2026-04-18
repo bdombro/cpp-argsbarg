@@ -75,7 +75,7 @@ CMake downloads the source at configure time and builds it alongside your projec
 include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
-    GIT_TAG        v0.2.0)
+    GIT_TAG        v0.3.0)
 # When embedding, examples and tests default to OFF (set ON if you want them).
 # You can still force them OFF explicitly:
 # set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
