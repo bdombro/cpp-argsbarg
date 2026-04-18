@@ -1,0 +1,16 @@
+set shell := ["bash", "-eu", "-o", "pipefail", "-c"]
+
+default:
+    @just --list
+
+configure:
+    cmake -S ../.. -B build -DCMAKE_BUILD_TYPE=Debug
+
+build: configure
+    cmake --build build --target nested_example
+
+run *ARGS: build
+    ./build/examples/nested/nested_example {{ARGS}}
+
+help: build
+    ./build/examples/nested/nested_example -h
