@@ -26,18 +26,32 @@ inline constexpr const char* k_builtin_zsh = "zsh";
             throw SchemaError(std::string("Reserved command name: ") + k_builtin_completion);
         }
     }
+    std::string zsh_completion_file = "_" + schema.name;
+    for (char& c : zsh_completion_file) {
+        if (c == '-') {
+            c = '_';
+        }
+    }
     schema.commands.push_back(
         Group{k_builtin_completion, "Generate the autocompletion script for shells."}
-            .child(Leaf{k_builtin_bash, "Generate the autocompletion script for bash."}
-                       .handler(Handler{[](Context&) {}})
-                       .notes("Writes the completion script to stdout. Save to a file and source "
-                              "it from ~/.bashrc."))
-            .child(Leaf{k_builtin_zsh, "Generate the autocompletion script for zsh."}
-                       .handler(Handler{[](Context&) {}})
-                       .notes("Writes the completion script to stdout. Save under "
-                              "~/.zsh/completions/_<name> (use underscores for hyphens in the app "
-                              "name) and add that directory to fpath before compinit, or redirect to "
-                              "a file.")));
+            .child(
+                Leaf{k_builtin_bash, "Generate the autocompletion script for bash."}
+                    .handler(Handler{[](Context&) {}})
+                    .notes("Prints the bash completion script to stdout only (no automatic "
+                           "install).\n\n"
+                           "Redirect to a file or use process substitution if needed."))
+            .child(
+                Leaf{k_builtin_zsh, "Generate the autocompletion script for zsh."}
+                    .handler(Handler{[](Context&) {}})
+                    .notes(
+                        std::string("Prints the zsh #compdef script to stdout only (no automatic "
+                                    "install).\n\n"
+                                    "In ~/.zshrc you can use e.g. eval \"$(") +
+                        schema.name +
+                        std::string(" completion zsh)\" without adding a file to fpath.\n\n"
+                                    "Or redirect to e.g. ~/.zsh/completions/") +
+                        zsh_completion_file +
+                        " on fpath, or use a temp file, as you prefer.")));
     return schema;
 }
 

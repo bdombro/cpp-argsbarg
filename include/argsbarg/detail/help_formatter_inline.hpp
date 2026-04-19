@@ -112,27 +112,59 @@ inline bool tty_fd(int fd) {
 }
 
 /// Greedy word-wrap of `text` into lines no wider than `width` (measured in columns).
+/// Newlines split paragraphs; an empty paragraph (from `\n\n`) inserts a blank line between blocks.
 inline std::vector<std::string> wrap_text(std::string_view text, int width) {
     const int available = std::max(1, width);
-    std::vector<std::string> out;
-    std::string cur;
-    std::istringstream iss{std::string{text}};
-    std::string word;
-    while (iss >> word) {
-        if (cur.empty()) {
-            cur = word;
-            continue;
+    auto wrap_words = [&](std::string_view para) {
+        std::vector<std::string> lines;
+        std::string cur;
+        std::istringstream iss{std::string{para}};
+        std::string word;
+        while (iss >> word) {
+            if (cur.empty()) {
+                cur = word;
+                continue;
+            }
+            if (static_cast<int>(cur.size() + 1 + word.size()) <= available) {
+                cur += ' ';
+                cur += word;
+            } else {
+                lines.push_back(cur);
+                cur = word;
+            }
         }
-        if (static_cast<int>(cur.size() + 1 + word.size()) <= available) {
-            cur += ' ';
-            cur += word;
-        } else {
-            out.push_back(cur);
-            cur = word;
+        if (!cur.empty()) {
+            lines.push_back(std::move(cur));
+        }
+        if (lines.empty()) {
+            lines.push_back("");
+        }
+        return lines;
+    };
+
+    std::vector<std::string> paragraphs;
+    std::string cur;
+    for (char ch : text) {
+        if (ch == '\n') {
+            paragraphs.push_back(std::move(cur));
+            cur.clear();
+        } else if (ch != '\r') {
+            cur += ch;
         }
     }
-    if (!cur.empty()) {
-        out.push_back(std::move(cur));
+    paragraphs.push_back(std::move(cur));
+
+    std::vector<std::string> out;
+    for (const std::string& p : paragraphs) {
+        if (p.empty()) {
+            if (!out.empty()) {
+                out.push_back("");
+            }
+            continue;
+        }
+        for (const auto& line : wrap_words(p)) {
+            out.push_back(line);
+        }
     }
     if (out.empty()) {
         out.push_back("");

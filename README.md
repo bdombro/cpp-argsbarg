@@ -13,6 +13,8 @@
 
 Build beautiful, well-behaved CLI apps in modern C++ — no macros, no runtime dependencies, just a single header.
 
+**ArgsBarg** is *schema-first* -- define your entire CLI’s structure, commands, options, and help in a single, explicit data model, making the command-line interface centralized, clear and self-describing upfront. `cpp-argsbarg` has siblings --> [nim](https://github.com/bdombro/nim-argsbarg), and [swift](https://github.com/bdombro/swift-argsbarg).
+
 Halps! -->
 ![help-preview.png](docs/help-preview.png)
 
@@ -34,7 +36,7 @@ Everything you need for a first-class CLI:
 
 ## Platforms and stability
 
-- **Platforms:** **Linux** and **macOS** (POSIX). The headers use POSIX APIs for TTY detection and completion install paths; Windows isn't in scope for this release line.
+- **Platforms:** **Linux** and **macOS** (POSIX). The headers use POSIX APIs for TTY detection (e.g. help styling); Windows isn't in scope for this release line.
 - **CMake:** 3.21+ (`find_package` config + install).
 - **API stability:** pre-1.0 SemVer — minor versions may include breaking changes. See [`CHANGELOG.md`](CHANGELOG.md) and [`feature-spec.md`](feature-spec.md) for details.
 
@@ -82,7 +84,7 @@ CMake downloads the source at configure time and builds it alongside your projec
 include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
-    GIT_TAG        v0.4.0)
+    GIT_TAG        v0.4.1)
 # When embedding, examples and tests default to OFF (set ON if you want them).
 # You can still force them OFF explicitly:
 # set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -113,7 +115,7 @@ Or from inside the repo: `PREFIX="$HOME/.local" just install`.
 
 ```cmake
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local") # match your install prefix
-find_package(argsbarg 0.4.0 CONFIG REQUIRED)
+find_package(argsbarg 0.4.1 CONFIG REQUIRED)
 
 target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
 ```
@@ -227,7 +229,7 @@ myapp completion zsh > ~/.zsh/completions/_myapp     # underscore name; ensure d
 | [`include/argsbarg/parse.hpp`](include/argsbarg/parse.hpp) | `schema_validate`, `parse`, `post_parse_validate`. |
 | [`include/argsbarg/help.hpp`](include/argsbarg/help.hpp) | `help_render`, `help_render_stderr`. |
 | [`include/argsbarg/builtins.hpp`](include/argsbarg/builtins.hpp) | `merge_builtins`, completion path helpers. |
-| [`include/argsbarg/completion.hpp`](include/argsbarg/completion.hpp) | `completion_*_script`, zsh install helper. |
+| [`include/argsbarg/completion.hpp`](include/argsbarg/completion.hpp) | `completion_bash_script`, `completion_zsh_script` (string only; hosts print to stdout). |
 | [`include/argsbarg/schema_error.hpp`](include/argsbarg/schema_error.hpp) | `SchemaError` (`std::logic_error`). |
 
 ---

@@ -12,7 +12,7 @@ int main(int argc, const char* argv[]) {
         std::cout << "hello " << name << '\n';
     };
 
-    Application{"helloapp"}
+    Application{"minimaldemo"}
         .description("Tiny demo.")
         .fallback("hello", FallbackMode::MissingOrUnknown)
         .command(Leaf{"hello", "Say hello."}

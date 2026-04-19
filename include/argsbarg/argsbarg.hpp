@@ -27,7 +27,7 @@ namespace argsbarg {
 
 /// Library version string (semver-style), kept in sync with releases and CMake `project(VERSION)`.
 [[nodiscard]] inline constexpr const char* version() noexcept {
-    return "0.4.0";
+    return "0.4.1";
 }
 
 /// Full host pipeline: merge built-ins, validate schema, parse argv, then help, errors,
@@ -60,6 +60,7 @@ inline void run(const Schema& schema, int argc, const char* const argv[]) {
         std::exit(1);
     }
 
+    // Built-in completion leaves always emit the script to stdout; the library never writes files.
     if (is_builtin_completion_bash(pr.path)) {
         std::cout << completion_bash_script(merged);
         std::exit(0);

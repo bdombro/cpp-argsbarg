@@ -7,11 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.4.0] - 2026-04-19
+### Changed
+
+- `scripts/release.py`: stage all changes (`git add -A`), no clean-tree requirement, dated `CHANGELOG` section without placeholder bullets, always `git push` and `gh release create --notes-from-tag`.
+- Built-in `completion bash` / `completion zsh`: scripts print to stdout only; zsh leaf help shows the app-specific zsh completion filename.
+
+### Fixed
+
+- `builtins.hpp` formatting for CI `clang-format --dry-run --Werror`.
+
+## [0.4.1] - 2026-04-19
 
 ### Changed
 
-- (Replace this stub with real release notes, then push.)
+- Tooling tweaks
+
+## [0.4.0] - 2026-04-19
 
 ## [0.3.0] - 2026-04-18
 
@@ -69,7 +80,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fluent authoring API: `Leaf`, `Group`, `Opt`, and `Arg` builders (`include/argsbarg/builders.hpp`).
 - `Application` fluent host, `Context` for handlers, `parse` / `schema_validate`, and umbrella header `argsbarg.hpp`.
 
-[Unreleased]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.1.2...v0.2.0

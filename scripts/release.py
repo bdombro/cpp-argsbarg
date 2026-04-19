@@ -5,28 +5,32 @@ Release helper for argsbarg: bump semver, sync docs, update Keep a Changelog foo
 What this is
 ------------
 Single entry point used by `just release <kind>` (and runnable as `python3 scripts/release.py …`).
-It automates the mechanical parts of cutting a library release while leaving `git push` to you so
-you can review the generated CHANGELOG stub and README pins before publishing.
+It bumps the version, commits, tags, **pushes** the branch and tag, and creates a **GitHub release**
+from the annotated tag (``gh release create … --notes-from-tag``). Requires a configured ``gh`` CLI.
 
 Steps (in order)
 ----------------
-1. **Preconditions** — Require a git working tree with no uncommitted changes (same as a safe
-   release cut).
+1. **Preconditions** — Require a git checkout (any working tree state is fine; all changes are
+   staged into the release commit).
 2. **Read current version** — Parse `return "X.Y.Z"` from `include/argsbarg/argsbarg.hpp` (must
    match the project’s single source of truth).
 3. **Compute next version** — From `major` / `minor` / `patch`, or accept an explicit `X.Y.Z`.
    Refuse if the computed version is not greater than the current version.
 4. **Pin versions in source** — Write the new semver into the header; update `README.md`
    `FetchContent` `GIT_TAG` and the `find_package(argsbarg … CONFIG` example line.
-5. **CHANGELOG** — Insert a dated `## [new] — …` section under `## [Unreleased]` with a short
-   stub bullet; bump the `[Unreleased]` compare link to `v{new}…HEAD`; prepend `[new]: compare/v{old}…v{new}` to the reference-link footer (Keep a Changelog style).
-6. **Git** — `git add` the touched files, `commit` with `chore: release v{new}`, and create an
-   annotated tag `v{new}` whose message is ``Release v{new}`` plus the full Keep a Changelog section
-   for that version (same text as under ``## [new]`` in ``CHANGELOG.md``). Does **not** push.
+5. **CHANGELOG** — Insert a dated `## [new] - YYYY-MM-DD` heading (plus blank line only) under
+   `## [Unreleased]` — **no** `### Changed` / `### Added` stubs or filler bullets; bump the
+   `[Unreleased]` compare link to `v{new}…HEAD`; prepend
+   `[new]: compare/v{old}…v{new}` to the reference-link footer (Keep a Changelog style).
+6. **Git** — `git add -A` (stage everything), `commit` with `chore: release v{new}`, and create an
+   annotated tag `v{new}` whose message is ``Release v{new}`` plus the ``CHANGELOG`` section for
+   that version (from ``## [new] - …`` through the line before the next ``## [`` — often only the
+   dated heading until you add subsections and bullets).
+7. **Publish** — ``git push``, ``git push origin v{new}``, then
+   ``gh release create v{new} --verify-tag --notes-from-tag``.
 
-After running, edit the new CHANGELOG section if needed, then run
-``git push && git push origin vX.Y.Z`` (with your version in place of ``X.Y.Z``). To open a GitHub
-release from that tag body: ``gh release create vX.Y.Z --verify-tag --notes-from-tag``.
+Add release notes under the new heading **before** running (or amend after) if you want more than
+the dated heading in the tag and GitHub release body.
 """
 
 from __future__ import annotations
@@ -51,23 +55,12 @@ def _run(cmd: list[str], *, cwd: Path) -> None:
     subprocess.run(cmd, cwd=cwd, check=True)
 
 
-def _run_text(cmd: list[str], *, cwd: Path) -> str:
-    """Run a subprocess, capture stdout as text, and return it (non-zero exit raises)."""
-    p = subprocess.run(cmd, cwd=cwd, capture_output=True, text=True, check=True)
-    return p.stdout
-
-
-def _ensure_clean_git(repo: Path) -> None:
-    """Require ``repo`` to be a git checkout with an empty ``git status --porcelain``."""
+def _ensure_git_repo(repo: Path) -> None:
+    """Require ``repo`` to be inside a git working tree."""
     try:
         _run(["git", "rev-parse", "--is-inside-work-tree"], cwd=repo)
     except (subprocess.CalledProcessError, FileNotFoundError) as e:
         raise SystemExit("error: not a git repository") from e
-    out = _run_text(["git", "status", "--porcelain"], cwd=repo).strip()
-    if out:
-        raise SystemExit(
-            "error: working tree is not clean; commit or stash changes before release\n" + out
-        )
 
 
 def _read_version_from_header(hdr: Path) -> str:
@@ -123,25 +116,20 @@ def _write_readme_pins(readme: Path, new_ver: str) -> None:
 
 
 def _write_changelog(changelog: Path, *, new_ver: str, today: str, cur_ver: str) -> None:
-    """Insert a dated release stub under ``[Unreleased]``, bump compare URLs, and add the version link line."""
+    """Insert only a dated ``## [new]`` heading under ``[Unreleased]``, bump compare URLs, add link line.
+
+    Deliberately does not insert Keep a Changelog subsection stubs (e.g. ``### Changed``); authors
+    add ``### Added`` / ``### Changed`` / etc. under ``[Unreleased]`` or under the new version by hand.
+    """
     nl = "\n"
     text = changelog.read_text(encoding="utf-8")
     marker_unrel = "## [Unreleased]" + nl + nl
     if marker_unrel not in text:
         raise SystemExit("missing ## [Unreleased] in CHANGELOG.md")
-    stub = (
-        marker_unrel
-        + f"## [{new_ver}] - {today}"
-        + nl
-        + nl
-        + "### Changed"
-        + nl
-        + nl
-        + "- (Replace this stub with real release notes, then push.)"
-        + nl
-        + nl
-    )
-    text = text.replace(marker_unrel, stub, 1)
+    # Version heading + blank line only (no ### Changed / ### Added boilerplate).
+    new_heading = f"## [{new_ver}] - {today}" + nl + nl
+    insert = marker_unrel + new_heading
+    text = text.replace(marker_unrel, insert, 1)
     text, n = re.subn(
         rf"(\[Unreleased\]: {re.escape(REPO)}/compare/)v[0-9.]+(\.\.\.HEAD)",
         rf"\1v{new_ver}\2",
@@ -179,8 +167,10 @@ def _annotated_tag_message(version: str, changelog_section: str) -> str:
 
 
 def main() -> None:
-    """CLI entry: validate repo, bump version, edit files, commit, annotated tag with changelog body."""
-    parser = argparse.ArgumentParser(description="Bump version, sync README/CHANGELOG, commit, tag.")
+    """CLI entry: validate repo, bump version, edit files, commit, tag, push, GitHub release."""
+    parser = argparse.ArgumentParser(
+        description="Bump version, sync README/CHANGELOG, commit, tag, push, gh release.",
+    )
     parser.add_argument(
         "kind",
         help="major | minor | patch | explicit X.Y.Z",
@@ -194,7 +184,7 @@ def main() -> None:
     args = parser.parse_args()
     repo: Path = args.repo_root.resolve()
 
-    _ensure_clean_git(repo)
+    _ensure_git_repo(repo)
 
     hdr = repo / HDR_REL
     readme = repo / README_REL
@@ -216,7 +206,7 @@ def main() -> None:
     notes = _extract_changelog_release_body(changelog.read_text(encoding="utf-8"), new)
     tag_message = _annotated_tag_message(new, notes)
 
-    _run(["git", "add", str(hdr), str(readme), str(changelog)], cwd=repo)
+    _run(["git", "add", "-A"], cwd=repo)
     _run(["git", "commit", "-m", f"chore: release v{new}"], cwd=repo)
 
     with tempfile.NamedTemporaryFile(
@@ -232,13 +222,21 @@ def main() -> None:
     finally:
         Path(tag_msg_path).unlink(missing_ok=True)
 
-    print(f"Created commit and annotated tag v{new} (tag message includes CHANGELOG section; not pushed).")
-    print(
-        f"Edit the new ## [{new}] section in CHANGELOG.md if needed "
-        "(README pins + footer links already bumped), then:"
+    _run(["git", "push"], cwd=repo)
+    _run(["git", "push", "origin", f"v{new}"], cwd=repo)
+    _run(
+        [
+            "gh",
+            "release",
+            "create",
+            f"v{new}",
+            "--verify-tag",
+            "--notes-from-tag",
+        ],
+        cwd=repo,
     )
-    print(f"  git push && git push origin v{new}")
-    print(f"  gh release create v{new} --verify-tag --notes-from-tag")
+
+    print(f"Released v{new}: commit + annotated tag (CHANGELOG body), pushed, GitHub release created.")
 
 
 if __name__ == "__main__":
