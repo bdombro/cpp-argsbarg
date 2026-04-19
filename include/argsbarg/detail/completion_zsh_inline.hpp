@@ -1,21 +1,15 @@
 #pragma once
 
-/// Zsh completion script generation and optional install under `~/.zsh/completions/`.
+/// Zsh completion script generation (`#compdef` body for stdout / redirect).
 ///
 /// Goal: emit `#compdef` scripts compatible with `compinit` and `_describe` / `_files`.
 /// Why: zsh completion has different word indexing and array syntax than bash.
-/// How: builds parallel helper functions and `compdef` registration; install path uses
-/// `<filesystem>`.
+/// How: builds parallel helper functions and `compdef` registration.
 
-#include "argsbarg/context.hpp"
 #include "argsbarg/detail/completion_shared.hpp"
 #include "argsbarg/schema.hpp"
 
 #include <algorithm>
-#include <cstdlib>
-#include <filesystem>
-#include <fstream>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <string_view>
@@ -304,46 +298,4 @@ inline std::string completion_zsh_script(const Schema& schema) {
     return out.str();
 }
 
-/// Writes the zsh script to stdout (`--print`) or to `~/.zsh/completions/` with setup hints.
-inline void completion_zsh_install_or_print(const Schema& merged, const Context& ctx) {
-    const auto script = completion_zsh_script(merged);
-    if (ctx.flag("print")) {
-        std::cout << script;
-        return;
-    }
-    const char* home = std::getenv("HOME");
-    if (home == nullptr) {
-        std::cerr << "HOME is not set; use --print and redirect manually.\n";
-        std::cout << script;
-        return;
-    }
-    std::filesystem::path dir = std::filesystem::path{home} / ".zsh" / "completions";
-    std::error_code ec;
-    std::filesystem::create_directories(dir, ec);
-    if (ec) {
-        std::cerr << "Could not create " << dir.string() << ": " << ec.message() << "\n";
-        std::cerr << "Add to ~/.zshrc before compinit:\n";
-        std::cerr << "  fpath=(" << dir.string() << " $fpath)\n";
-        std::cout << script;
-        return;
-    }
-    std::string fname = "_" + merged.name;
-    for (auto& c : fname) {
-        if (c == '-') {
-            c = '_';
-        }
-    }
-    const auto outpath = dir / fname;
-    std::ofstream f(outpath);
-    if (!f) {
-        std::cerr << "Could not write " << outpath.string() << "\n";
-        std::cout << script;
-        return;
-    }
-    f << script;
-    std::cerr << "Wrote " << outpath.string() << "\n";
-    std::cerr << "Ensure ~/.zshrc contains before compinit:\n";
-    std::cerr << "  fpath=(" << dir.string() << " $fpath)\n";
-    std::cerr << "  autoload -Uz compinit && compinit\n";
-}
 } // namespace argsbarg

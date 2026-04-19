@@ -65,8 +65,7 @@ inline void run(const Schema& schema, int argc, const char* const argv[]) {
         std::exit(0);
     }
     if (is_builtin_completion_zsh(pr.path)) {
-        Context ctx(merged.name, pr.path, pr.opts, pr.args, merged);
-        completion_zsh_install_or_print(merged, ctx);
+        std::cout << completion_zsh_script(merged);
         std::exit(0);
     }
 

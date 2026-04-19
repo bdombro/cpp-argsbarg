@@ -42,7 +42,7 @@ TEST_CASE("nested example implicit help on empty argv") {
 TEST_CASE("minimal zsh completion print emits script") {
     const char* exe = ARGSBARG_TEST_MINIMAL_EXE;
     const std::string q = "'" + std::string{exe} + "'";
-    const std::string cmd = q + " completion zsh --print | head -c 20 | wc -c";
+    const std::string cmd = q + " completion zsh | head -c 20 | wc -c";
     FILE* p = popen(cmd.c_str(), "r");
     REQUIRE(p != nullptr);
     char buf[32]{};

@@ -1,12 +1,11 @@
 #pragma once
 
-/// Declarations for bash/zsh completion script generation and zsh install helper.
+/// Declarations for bash/zsh completion script generation.
 ///
 /// Goal: ship shell integration without maintaining hand-written completion files per app.
 /// Why: completions stay in sync with the live `Schema` tree.
-/// How: string-generates shell script text; zsh path can install under `~/.zsh/completions/`.
+/// How: string-generates shell script text for hosts to print (stdout / redirect).
 
-#include "context.hpp"
 #include "schema.hpp"
 
 namespace argsbarg {
@@ -16,9 +15,6 @@ namespace argsbarg {
 
 /// `#compdef` zsh completion script body for `schema.name`.
 [[nodiscard]] std::string completion_zsh_script(const Schema& merged);
-
-/// Writes zsh script to `~/.zsh/completions/` or stdout when `--print` is set on the zsh leaf.
-void completion_zsh_install_or_print(const Schema& merged, const Context& ctx);
 
 } // namespace argsbarg
 

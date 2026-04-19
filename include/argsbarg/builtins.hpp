@@ -34,11 +34,10 @@ inline constexpr const char* k_builtin_zsh = "zsh";
                               "it from ~/.bashrc."))
             .child(Leaf{k_builtin_zsh, "Generate the autocompletion script for zsh."}
                        .handler(Handler{[](Context&) {}})
-                       .option(Opt{
-                           "print",
-                           "Print script to stdout instead of installing to ~/.zsh/completions/."})
-                       .notes("Without --print, writes to ~/.zsh/completions/_{app}. Use --print "
-                              "to write to stdout.")));
+                       .notes("Writes the completion script to stdout. Save under "
+                              "~/.zsh/completions/_<name> (use underscores for hyphens in the app "
+                              "name) and add that directory to fpath before compinit, or redirect to "
+                              "a file.")));
     return schema;
 }
 

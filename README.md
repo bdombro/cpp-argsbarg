@@ -13,6 +13,15 @@
 
 Build beautiful, well-behaved CLI apps in modern C++ — no macros, no runtime dependencies, just a single header.
 
+Halps! -->
+![help-preview.png](docs/help-preview.png)
+
+Sub-level Halps! -->
+![help-l2-preview.png](docs/help-l2-preview.png)
+
+Shell completions! -->
+![completions-preview.png](docs/completions-preview.png)
+
 Everything you need for a first-class CLI:
 
 - Nested subcommands
@@ -129,7 +138,7 @@ Every app processed by `run()` gains:
 
 - `-h` / `--help` at any routing depth (scoped help).
 - `completion bash` — prints a bash completion script to **stdout**.
-- `completion zsh` — installs under `~/.zsh/completions/` or use `--print` for **stdout**.
+- `completion zsh` — prints a zsh completion script to **stdout** (same pattern as bash).
 
 The top-level name `completion` is reserved for the built-in group.
 
@@ -201,8 +210,7 @@ cd examples/minimal && just build && just run ARGS='hello -h'
 
 ```bash
 myapp completion bash > ~/.bash_completion.d/myapp   # or: source <(myapp completion bash)
-myapp completion zsh --print                         # inspect / redirect
-myapp completion zsh                                 # install under ~/.zsh/completions/
+myapp completion zsh > ~/.zsh/completions/_myapp     # underscore name; ensure dir is on fpath
 ```
 
 ---
