@@ -1,5 +1,12 @@
 #pragma once
 
+/// Umbrella entry for argsbarg: high-level `run` / `err_with_help` and re-exports.
+///
+/// Goal: give apps a single `#include` that wires parsing, help, completions, and dispatch.
+/// Why: consumers should not need to know internal header split across `parse`, `help`, etc.
+/// How: includes the public headers, then implements `run` by composing merge, validate,
+/// parse, help rendering, completion side paths, and handler invocation with `std::exit`.
+
 #include "argsbarg/application.hpp"
 #include "argsbarg/builders.hpp"
 #include "argsbarg/builtins.hpp"
@@ -18,11 +25,13 @@
 
 namespace argsbarg {
 
-/// Library version string (semver-style).
+/// Library version string (semver-style), kept in sync with releases and CMake `project(VERSION)`.
 [[nodiscard]] inline constexpr const char* version() noexcept {
     return "0.3.0";
 }
 
+/// Full host pipeline: merge built-ins, validate schema, parse argv, then help, errors,
+/// completion scripts, or the matched leaf handler (always ends with `std::exit`).
 inline void run(const Schema& schema, int argc, const char* const argv[]) {
     const Schema merged = merge_builtins(schema);
     schema_validate(merged);
@@ -81,6 +90,7 @@ inline void run(const Schema& schema, int argc, const char* const argv[]) {
     std::exit(0);
 }
 
+/// Print `msg` and contextual help on stderr, then exit with status 1 (TTY-aware color).
 [[noreturn]] inline void err_with_help(const Context& ctx, std::string msg) {
     const bool color = isatty(STDERR_FILENO) != 0;
     std::cerr << (color ? style::red(msg) : msg) << '\n';

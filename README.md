@@ -1,14 +1,9 @@
-```
-                          ___.                        
-_____ _______  ____  _____\_ |__ _____ _______  ____  
-\__  \\_  __ \/ ___\/  ___/| __ \\__  \\_  __ \/ ___\ 
- / __ \|  | \/ /_/  >___ \ | \_\ \/ __ \|  | \/ /_/  >
-(____  /__|  \___  /____  >|___  (____  /__|  \___  / 
-     \/     /_____/     \/     \/     \/     /_____/  
-```
+![Logo](logo.png)
 <!-- Big money NE - https://patorjk.com/software/taag/#p=testall&f=Bulbhead&t=shebangsy&x=none&v=4&h=4&w=80&we=false> -->
 
 # ArgsBarg
+
+[![GitHub](https://img.shields.io/badge/GitHub-bdombro%2Fcpp--argsbarg-181717?logo=github)](https://github.com/bdombro/cpp-argsbarg)
 
 [![CI](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml/badge.svg)](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -109,7 +104,7 @@ Or from inside the repo: `PREFIX="$HOME/.local" just install`.
 
 ```cmake
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local") # match your install prefix
-find_package(argsbarg 0.2.0 CONFIG REQUIRED)
+find_package(argsbarg 0.3.0 CONFIG REQUIRED)
 
 target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
 ```

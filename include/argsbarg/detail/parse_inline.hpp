@@ -1,5 +1,12 @@
 #pragma once
 
+/// Implementation of argv routing, option consumption, and schema validation.
+///
+/// Goal: keep `parse.hpp` thin while inlining the full parser for header-only distribution.
+/// Why: one TU worth of logic without a separate `.cpp` for consumers.
+/// How: anonymous helpers for token walks; public `parse`, `post_parse_validate`,
+/// `schema_validate`.
+
 #include "argsbarg/result.hpp"
 #include "argsbarg/schema.hpp"
 #include "argsbarg/schema_error.hpp"
@@ -21,10 +28,12 @@ namespace {
 constexpr std::string_view k_help_long = "--help";
 constexpr std::string_view k_help_short = "-h";
 
+/// True for `-h` / `--help` tokens (parsing stops so caller can emit help).
 bool is_help_tok(std::string_view tok) {
     return tok == k_help_short || tok == k_help_long;
 }
 
+/// Looks up a non-positional option definition by its short alias character.
 const Option* find_option_def_by_short(const std::vector<Option>& defs, char short_name) {
     for (const auto& o : defs) {
         if (!o.positional && o.short_name == short_name) {
@@ -34,11 +43,13 @@ const Option* find_option_def_by_short(const std::vector<Option>& defs, char sho
     return nullptr;
 }
 
+/// Result of scanning argv for long/short options at one routing level.
 struct ConsumeReport {
     std::optional<std::string> err;
     bool stopped_on_unknown{false};
 };
 
+/// Consumes leading `-x` / `--long` tokens into `opts`, optionally stopping on unknown flags.
 ConsumeReport consume_options(const std::vector<Option>& defs, bool lenient_unknown, std::size_t& i,
                               const std::vector<std::string>& argv,
                               std::unordered_map<std::string, std::string>& opts) {
@@ -145,6 +156,7 @@ ConsumeReport consume_options(const std::vector<Option>& defs, bool lenient_unkn
     return {};
 }
 
+/// Collects positional tail for a leaf and returns Ok or Error (no I/O).
 ParseResult finish_leaf(const Command& node, std::size_t& i, const std::vector<std::string>& argv,
                         const std::vector<std::string>& path,
                         const std::unordered_map<std::string, std::string>& opts) {
@@ -207,6 +219,7 @@ ParseResult finish_leaf(const Command& node, std::size_t& i, const std::vector<s
 
 } // namespace
 
+/// Parses argv against `schema` (merged built-ins) without printing or exiting.
 inline ParseResult parse(const Schema& schema, const std::vector<std::string>& argv) {
     std::size_t i = 0;
     std::vector<std::string> path;
@@ -336,6 +349,7 @@ inline ParseResult parse(const Schema& schema, const std::vector<std::string>& a
     }
 }
 
+/// Validates numeric option strings and option keys against the merged schema for `pr.path`.
 inline ParseResult post_parse_validate(const Schema& merged, ParseResult pr) {
     if (pr.kind != ParseKind::Ok) {
         return pr;
@@ -383,6 +397,7 @@ inline ParseResult post_parse_validate(const Schema& merged, ParseResult pr) {
 
 namespace {
 
+/// Ensures short aliases are unique and not `-h` on non-positionals.
 void check_options(const std::vector<Option>& defs, const std::string& scope) {
     std::set<char> seen_shorts;
     for (const auto& d : defs) {
@@ -404,6 +419,7 @@ void check_options(const std::vector<Option>& defs, const std::string& scope) {
     }
 }
 
+/// Validates positional `arg_min` / `arg_max` ordering and optional/required sequencing.
 void check_positionals(const std::vector<Option>& defs, const std::string& scope) {
     std::vector<const Option*> pos;
     for (const auto& d : defs) {
@@ -438,6 +454,7 @@ void check_positionals(const std::vector<Option>& defs, const std::string& scope
     }
 }
 
+/// Recursively validates each command node (routing vs leaf rules, duplicate children).
 void walk_command(const Command& cmd) {
     if (!cmd.children.empty()) {
         if (cmd.handler.has_value()) {
@@ -464,6 +481,7 @@ void walk_command(const Command& cmd) {
 
 } // namespace
 
+/// Validates merged schema invariants before any argv parsing (throws `SchemaError`).
 inline void schema_validate(const Schema& merged) {
     if (!merged.fallback_command.has_value()) {
         if (merged.fallback_mode == FallbackMode::MissingOrUnknown ||
@@ -494,4 +512,5 @@ inline void schema_validate(const Schema& merged) {
         walk_command(c);
     }
 }
+
 } // namespace argsbarg

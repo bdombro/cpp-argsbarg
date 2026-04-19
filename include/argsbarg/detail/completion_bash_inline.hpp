@@ -1,5 +1,11 @@
 #pragma once
 
+/// Bash programmable completion script generation (`complete -F`).
+///
+/// Goal: emit a self-contained script that tracks argv position against the `Schema` tree.
+/// Why: bash is the most common target for generated CLI completions in POSIX environments.
+/// How: string-builds helper functions then registers `complete -F _<app> <app>`.
+
 #include "argsbarg/detail/completion_shared.hpp"
 #include "argsbarg/schema.hpp"
 
@@ -12,6 +18,7 @@
 
 namespace argsbarg {
 
+/// String fragments for bash `compgen` completion (internal to this header).
 namespace bash_gen {
 
 constexpr const char* k_help_long = "--help";
@@ -22,6 +29,7 @@ using detail::esc_shell_single_quoted;
 using detail::ident_token;
 using detail::ScopeRec;
 
+/// Emits bash function `_<ident>_nac_consume_long` classifying `--long` tokens per scope id.
 inline std::string emit_consume_long(std::string_view ident, const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
     o << "_" << ident << "_nac_consume_long() {\n";
@@ -55,6 +63,7 @@ inline std::string emit_consume_long(std::string_view ident, const std::vector<S
     return o.str();
 }
 
+/// Emits bash function `_<ident>_nac_consume_short` for bundled short options at a scope.
 inline std::string emit_consume_short(std::string_view ident, const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
     o << "_" << ident << "_nac_consume_short() {\n";
@@ -101,6 +110,7 @@ inline std::string emit_consume_short(std::string_view ident, const std::vector<
     return o.str();
 }
 
+/// Emits bash function mapping a command token to the child scope index (or failure).
 inline std::string emit_match_child(std::string_view ident, const std::vector<ScopeRec>& scopes,
                                     const std::unordered_map<std::string, int>& path_index) {
     std::ostringstream o;
@@ -129,6 +139,7 @@ inline std::string emit_match_child(std::string_view ident, const std::vector<Sc
     return o.str();
 }
 
+/// Emits bash function that replays argv up to `cword` and prints the final scope id.
 inline std::string emit_simulate(std::string_view ident) {
     std::ostringstream o;
     o << "_" << ident << "_nac_simulate() {\n";
@@ -167,6 +178,7 @@ inline std::string emit_simulate(std::string_view ident) {
     return o.str();
 }
 
+/// Emits the `_<app>` completion function plus `complete -F` registration line.
 inline std::string emit_main_body(const Schema& schema, std::string_view ident,
                                   const std::vector<ScopeRec>& scopes) {
     std::string main_name = schema.name;
@@ -245,6 +257,7 @@ inline std::string emit_main_body(const Schema& schema, std::string_view ident,
 
 } // namespace bash_gen
 
+/// Returns the full bash completion script for `schema.name` (comments + functions + `complete`).
 inline std::string completion_bash_script(const Schema& schema) {
     const auto ident = detail::ident_token(schema.name);
     const auto scopes = detail::collect_scopes(schema);

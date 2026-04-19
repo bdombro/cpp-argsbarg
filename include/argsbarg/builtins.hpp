@@ -1,5 +1,11 @@
 #pragma once
 
+/// Reserved `completion` command group and helpers to detect completion argv paths.
+///
+/// Goal: inject bash/zsh completion subcommands without colliding with user command names.
+/// Why: every app should get completions from one predictable entry point.
+/// How: appends a synthetic `Group` named `completion` with `bash` / `zsh` leaves to `Schema`.
+
 #include "argsbarg/builders.hpp"
 #include "argsbarg/schema.hpp"
 #include "argsbarg/schema_error.hpp"
@@ -13,6 +19,7 @@ inline constexpr const char* k_builtin_completion = "completion";
 inline constexpr const char* k_builtin_bash = "bash";
 inline constexpr const char* k_builtin_zsh = "zsh";
 
+/// Returns a copy of `schema` with built-in completion commands merged (throws on name clash).
 [[nodiscard]] inline Schema merge_builtins(Schema schema) {
     for (const auto& c : schema.commands) {
         if (c.name == k_builtin_completion) {
@@ -35,10 +42,12 @@ inline constexpr const char* k_builtin_zsh = "zsh";
     return schema;
 }
 
+/// True when argv routed to `completion bash`.
 [[nodiscard]] inline bool is_builtin_completion_bash(const std::vector<std::string>& path) {
     return path.size() == 2 && path[0] == k_builtin_completion && path[1] == k_builtin_bash;
 }
 
+/// True when argv routed to `completion zsh`.
 [[nodiscard]] inline bool is_builtin_completion_zsh(const std::vector<std::string>& path) {
     return path.size() == 2 && path[0] == k_builtin_completion && path[1] == k_builtin_zsh;
 }

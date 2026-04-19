@@ -1,5 +1,11 @@
 #pragma once
 
+/// Box-drawn help text: terminal width, UTF-8 column counting, and optional ANSI color.
+///
+/// Goal: implement `help_render` / `help_render_stderr` in one header for consumers of `help.hpp`.
+/// Why: keeps help layout identical to the reference Nim implementation without a link dependency.
+/// How: measures `TIOCGWINSZ`, skips ANSI sequences for width, emits bordered sections and tables.
+
 #include "argsbarg/schema.hpp"
 #include "argsbarg/style.hpp"
 
@@ -13,6 +19,7 @@
 
 namespace argsbarg {
 
+/// Helpers and layout primitives for contextual help (not intended as a public API).
 namespace help_fmt_detail {
 
 // UTF-8 box drawing (aligned with nim-argsbarg help.nim)
@@ -23,6 +30,8 @@ inline constexpr std::string_view k_box_bl = "\xe2\x95\xb0"; // ╰
 inline constexpr std::string_view k_box_br = "\xe2\x95\xaf"; // ╯
 inline constexpr std::string_view k_box_h = "\xe2\x94\x80";  // ─
 
+/// Returns the index after the UTF-8 codepoint starting at `i` (replacement char advance on bad
+/// leading bytes).
 inline std::size_t utf8_codepoint_advance(std::string_view s, std::size_t i) {
     if (i >= s.size()) {
         return i;
@@ -43,6 +52,7 @@ inline std::size_t utf8_codepoint_advance(std::string_view s, std::size_t i) {
     return i + 1;
 }
 
+/// Terminal display width: one column per codepoint, ignoring ANSI SGR sequences.
 inline int visible_width(std::string_view s) {
     int w = 0;
     for (std::size_t i = 0; i < s.size();) {
@@ -62,6 +72,7 @@ inline int visible_width(std::string_view s) {
     return w;
 }
 
+/// Repeats the horizontal box glyph `n` times (may be zero).
 inline std::string repeat_box_h(int n) {
     std::string r;
     r.reserve(k_box_h.size() * static_cast<std::size_t>(std::max(0, n)));
@@ -71,18 +82,22 @@ inline std::string repeat_box_h(int n) {
     return r;
 }
 
+/// Repeats ASCII character `c` `n` times (clamped at non-negative length).
 inline std::string repeat_char(char c, int n) {
     return std::string(std::max(0, n), c);
 }
 
+/// Returns `n` ASCII spaces (non-negative).
 inline std::string spaces(int n) {
     return repeat_char(' ', std::max(0, n));
 }
 
+/// Right-pads `s` with spaces so its visible width is at least `width`.
 inline std::string pad_visible(std::string_view s, int width) {
     return std::string{s} + spaces(std::max(0, width - visible_width(s)));
 }
 
+/// Preferred help line width from tty `fd`, or a conservative default when not a tty.
 inline int help_width_fd(int fd) {
     winsize w{};
     if (ioctl(fd, TIOCGWINSZ, &w) == 0 && w.ws_col > 0) {
@@ -91,10 +106,12 @@ inline int help_width_fd(int fd) {
     return 80;
 }
 
+/// True when `fd` refers to an interactive terminal (drives color in help).
 inline bool tty_fd(int fd) {
     return isatty(fd) != 0;
 }
 
+/// Greedy word-wrap of `text` into lines no wider than `width` (measured in columns).
 inline std::vector<std::string> wrap_text(std::string_view text, int width) {
     const int available = std::max(1, width);
     std::vector<std::string> out;
@@ -123,6 +140,7 @@ inline std::vector<std::string> wrap_text(std::string_view text, int width) {
     return out;
 }
 
+/// Suffix for usage labels (`<number>`, `<string>`, or empty for presence).
 inline std::string opt_kind_label(OptionKind k) {
     switch (k) {
     case OptionKind::Presence:
@@ -135,6 +153,7 @@ inline std::string opt_kind_label(OptionKind k) {
     return "";
 }
 
+/// Renders one option or positional for tables and usage (optional ANSI highlights).
 inline std::string option_label(const Option& o, bool color) {
     if (o.positional) {
         if (o.arg_max == 1) {
@@ -160,11 +179,13 @@ inline std::string option_label(const Option& o, bool color) {
     return style::aqua_bold(r);
 }
 
+/// One row in a bordered help table (label column + description).
 struct HelpRow {
     std::string label;
     std::string description;
 };
 
+/// Renders a titled paragraph box with UTF-8 corners and optional gray/bold styling.
 inline std::vector<std::string>
 render_text_box(std::string_view title, const std::vector<std::string>& lines, int hw, bool color) {
     if (lines.empty()) {
@@ -199,6 +220,7 @@ render_text_box(std::string_view title, const std::vector<std::string>& lines, i
     return out;
 }
 
+/// Renders a two-column table (label + wrapped description) inside a bordered box.
 inline std::vector<std::string>
 render_table_box(std::string_view title, const std::vector<HelpRow>& rows, int hw, bool color) {
     if (rows.empty()) {
@@ -252,6 +274,7 @@ render_table_box(std::string_view title, const std::vector<HelpRow>& rows, int h
     return out;
 }
 
+/// Builds one or two usage synopsis lines for root or nested help paths.
 inline std::vector<std::string> usage_lines(const std::string& app_name,
                                             const std::vector<std::string>& help_path,
                                             bool has_commands, bool has_args, bool color) {
@@ -279,6 +302,7 @@ inline std::vector<std::string> usage_lines(const std::string& app_name,
     return out;
 }
 
+/// Table rows for non-positional options at a scope, including built-in `--help` / `-h`.
 inline std::vector<HelpRow> rows_for_options(const std::vector<Option>& defs, bool color) {
     std::vector<HelpRow> rows;
     rows.push_back({color ? style::aqua_bold("--help, ") + style::green_bright("-h") : "--help, -h",
@@ -292,6 +316,7 @@ inline std::vector<HelpRow> rows_for_options(const std::vector<Option>& defs, bo
     return rows;
 }
 
+/// Table rows for positional / variadic argument definitions at a scope.
 inline std::vector<HelpRow> rows_for_positionals(const std::vector<Option>& defs, bool color) {
     std::vector<HelpRow> rows;
     for (const auto& o : defs) {
@@ -302,6 +327,7 @@ inline std::vector<HelpRow> rows_for_positionals(const std::vector<Option>& defs
     return rows;
 }
 
+/// Sorted subcommand names and descriptions for a routing node.
 inline std::vector<HelpRow> rows_for_subcommands(const std::vector<Command>& cmds) {
     auto sorted = cmds;
     std::sort(sorted.begin(), sorted.end(),
@@ -313,6 +339,7 @@ inline std::vector<HelpRow> rows_for_subcommands(const std::vector<Command>& cmd
     return rows;
 }
 
+/// Joins pre-rendered lines with `sep` (typically newline).
 inline std::string join_lines(const std::vector<std::string>& lines, const std::string& sep) {
     std::ostringstream oss;
     for (std::size_t i = 0; i < lines.size(); ++i) {
@@ -324,6 +351,7 @@ inline std::string join_lines(const std::vector<std::string>& lines, const std::
     return oss.str();
 }
 
+/// Full help document for `help_path`, using `tty_fd_num` for width and color decisions.
 inline std::string help_render_for_fd(const Schema& schema,
                                       const std::vector<std::string>& help_path, int tty_fd_num) {
     const int hw = help_width_fd(tty_fd_num);
@@ -418,10 +446,12 @@ inline std::string help_render_for_fd(const Schema& schema,
 
 } // namespace help_fmt_detail
 
+/// Renders help to a string as if for stdout (width/color follow stdout tty).
 inline std::string help_render(const Schema& schema, const std::vector<std::string>& help_path) {
     return help_fmt_detail::help_render_for_fd(schema, help_path, STDOUT_FILENO);
 }
 
+/// Renders help using stderr tty width/color (for error footers next to stderr messages).
 inline std::string help_render_stderr(const Schema& schema,
                                       const std::vector<std::string>& help_path) {
     return help_fmt_detail::help_render_for_fd(schema, help_path, STDERR_FILENO);

@@ -1,5 +1,12 @@
 #pragma once
 
+/// Zsh completion script generation and optional install under `~/.zsh/completions/`.
+///
+/// Goal: emit `#compdef` scripts compatible with `compinit` and `_describe` / `_files`.
+/// Why: zsh completion has different word indexing and array syntax than bash.
+/// How: builds parallel helper functions and `compdef` registration; install path uses
+/// `<filesystem>`.
+
 #include "argsbarg/context.hpp"
 #include "argsbarg/detail/completion_shared.hpp"
 #include "argsbarg/schema.hpp"
@@ -17,6 +24,7 @@
 
 namespace argsbarg {
 
+/// String fragments for zsh completion (internal to this header).
 namespace zsh_gen {
 
 constexpr const char* k_help_long = "--help";
@@ -27,6 +35,7 @@ using detail::esc_shell_single_quoted;
 using detail::ident_token;
 using detail::ScopeRec;
 
+/// Emits `typeset` arrays holding command and option descriptions per scope id.
 inline std::string emit_scope_arrays(std::string_view ident, const std::vector<ScopeRec>& scopes) {
     std::ostringstream lines;
     for (std::size_t i = 0; i < scopes.size(); ++i) {
@@ -86,6 +95,7 @@ inline std::string emit_scope_arrays(std::string_view ident, const std::vector<S
     return lines.str();
 }
 
+/// Zsh variant of long-option consumption classifier (mirrors bash logic with zsh string ops).
 inline std::string emit_consume_long_zsh(std::string_view ident,
                                          const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
@@ -120,6 +130,7 @@ inline std::string emit_consume_long_zsh(std::string_view ident,
     return o.str();
 }
 
+/// Zsh variant of short-option bundle classifier.
 inline std::string emit_consume_short_zsh(std::string_view ident,
                                           const std::vector<ScopeRec>& scopes) {
     std::ostringstream o;
@@ -167,6 +178,7 @@ inline std::string emit_consume_short_zsh(std::string_view ident,
     return o.str();
 }
 
+/// Maps a subcommand token to the next scope id for zsh (throws if path missing from index).
 inline std::string emit_match_child_zsh(std::string_view ident, const std::vector<ScopeRec>& scopes,
                                         const std::unordered_map<std::string, int>& path_index) {
     std::ostringstream o;
@@ -194,6 +206,7 @@ inline std::string emit_match_child_zsh(std::string_view ident, const std::vecto
     return o.str();
 }
 
+/// Replays `$words` up to `CURRENT` and stores the final scope id in `REPLY_SID`.
 inline std::string emit_simulate_zsh(std::string_view ident) {
     std::ostringstream o;
     o << "_" << ident << "_nac_simulate() {\n";
@@ -232,6 +245,7 @@ inline std::string emit_simulate_zsh(std::string_view ident) {
     return o.str();
 }
 
+/// Main `_<app>` completion widget and `compdef` line for zsh.
 inline std::string emit_main_body_zsh(const Schema& schema, std::string_view ident) {
     std::string main_name = schema.name;
     for (auto& c : main_name) {
@@ -271,6 +285,7 @@ inline std::string emit_main_body_zsh(const Schema& schema, std::string_view ide
 
 } // namespace zsh_gen
 
+/// Full zsh completion script (`#compdef` + helpers + `compdef`) for `schema.name`.
 inline std::string completion_zsh_script(const Schema& schema) {
     const auto ident = detail::ident_token(schema.name);
     const auto scopes = detail::collect_scopes(schema);
@@ -289,6 +304,7 @@ inline std::string completion_zsh_script(const Schema& schema) {
     return out.str();
 }
 
+/// Writes the zsh script to stdout (`--print`) or to `~/.zsh/completions/` with setup hints.
 inline void completion_zsh_install_or_print(const Schema& merged, const Context& ctx) {
     const auto script = completion_zsh_script(merged);
     if (ctx.flag("print")) {

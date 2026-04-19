@@ -1,61 +1,96 @@
 #pragma once
 
+/// Fluent builders (`Opt`, `Arg`, `Leaf`, `Group`) that produce `Option` / `Command` values.
+///
+/// Goal: mirror a pleasant authoring style while staying macro-free.
+/// Why: keeps schema construction readable and chains type-safe (`operator Command()`).
+/// How: small wrapper types mutate internal `Option` or `Command`, then convert implicitly.
+
 #include "schema.hpp"
 
 #include <string>
 
 namespace argsbarg {
 
-/// Fluent builder for optional flags and value-taking options (maps to @ref Option with
-/// `positional == false`).
+/// Builder for optional flags and value-taking options (maps to `Option` with `positional ==
+/// false`).
 class Opt {
   public:
     Opt(std::string name, std::string desc);
-    Opt& flag(); // default; OptionKind::Presence
+
+    /// Presence flag (default).
+    Opt& flag();
+
+    /// String-valued `--name value` option.
     Opt& string();
+
+    /// Numeric `--count 3` option (validated later).
     Opt& number();
+
+    /// Single-letter short form (e.g. `-v`).
     Opt& short_alias(char c);
+
     [[nodiscard]] operator Option() const;
 
   private:
     Option opt_{};
 };
 
-/// Fluent builder for positional arguments and tails (maps to @ref Option with
-/// `positional == true`).
+/// Builder for positional arguments and variadic tails (`positional == true`).
 class Arg {
   public:
     Arg(std::string name, std::string desc);
-    Arg& optional(); // arg_min = 0 (default is required: arg_min = 1)
-    Arg& min(int n); // list mode: sets arg_min and arg_max = 0 (unlimited) until @ref max
-    Arg& max(int n); // cap the tail length; 0 = unlimited
+
+    /// Makes the positional optional (`arg_min = 0`).
+    Arg& optional();
+
+    /// List mode: sets minimum words; use `max` to cap (0 = unlimited until `max`).
+    Arg& min(int n);
+
+    /// Caps tail length when combined with `min`; `0` means unlimited.
+    Arg& max(int n);
+
     [[nodiscard]] operator Option() const;
 
   private:
     Option opt_{};
 };
 
-/// Fluent builder for leaf commands (has a handler).
+/// Builder for executable leaf commands (must end with `.handler(...)`).
 class Leaf {
   public:
     Leaf(std::string name, std::string desc);
+
+    /// Sets the code invoked when this leaf is selected.
     Leaf& handler(Handler h);
-    Leaf& option(Option opt); // accepts Opt or Arg via `operator Option()`
-    Leaf& arg(Option pos);    // always appends to `positionals`
+
+    /// Adds a flag/value option or positional (`Arg` vs `Opt` via `operator Option()`).
+    Leaf& option(Option opt);
+
+    /// Appends a positional definition (forces `positional` true).
+    Leaf& arg(Option pos);
+
+    /// Extra help text for this command (supports `{app}` substitution in help).
     Leaf& notes(std::string s);
+
     [[nodiscard]] operator Command() const;
 
   private:
     Command cmd_{};
 };
 
-/// Fluent builder for routing group commands (subcommands, optional group-level options).
+/// Builder for routing nodes that hold subcommands and optional group-level options.
 class Group {
   public:
     Group(std::string name, std::string desc);
-    Group& child(Command c); // accepts Leaf or Group via `operator Command()`
+
+    /// Adds a nested `Leaf` or `Group`.
+    Group& child(Command c);
+
     Group& option(Option opt);
+
     Group& notes(std::string s);
+
     [[nodiscard]] operator Command() const;
 
   private:

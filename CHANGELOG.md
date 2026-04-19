@@ -9,10 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.3.0] - 2026-04-18
 
-### Changed
-
-- (Replace this stub with real release notes, then push.)
-
 ### Added
 
 - GitHub Actions workflow: configure, build, `ctest`, install smoke, and `clang-format --dry-run`.
@@ -66,3 +62,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial library: nested subcommands, POSIX-style options, contextual help, fallback modes, bash/zsh completion generation.
 - Fluent authoring API: `Leaf`, `Group`, `Opt`, and `Arg` builders (`include/argsbarg/builders.hpp`).
 - `Application` fluent host, `Context` for handlers, `parse` / `schema_validate`, and umbrella header `argsbarg.hpp`.
+
+[Unreleased]: https://github.com/bdombro/cpp-argsbarg/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.1.2...v0.2.0
+[0.1.2]: https://github.com/bdombro/cpp-argsbarg/compare/v0.1.1...v0.1.2
+[0.1.1]: https://github.com/bdombro/cpp-argsbarg/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/bdombro/cpp-argsbarg/releases/tag/v0.1.0

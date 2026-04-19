@@ -1,5 +1,11 @@
 #pragma once
 
+/// Shared completion metadata: scope walk, shell escaping, and identifier mangling.
+///
+/// Goal: reuse one tree walk for both bash and zsh script generators.
+/// Why: keeps completion logic consistent across shells without a third copy.
+/// How: collects flattened scopes with options and children; helpers quote and sanitize names.
+
 #include "argsbarg/schema.hpp"
 
 #include <cctype>
@@ -9,6 +15,7 @@
 
 namespace argsbarg::detail {
 
+/// One routing level in the CLI tree for completion (subcommands, options, file hints).
 struct ScopeRec {
     std::vector<Command> kids;
     std::vector<Option> opts;
@@ -16,6 +23,7 @@ struct ScopeRec {
     bool wants_files{false};
 };
 
+/// Escapes a string for safe embedding inside single-quoted shell segments.
 [[nodiscard]] inline std::string esc_shell_single_quoted(std::string_view s) {
     std::string r;
     r.reserve(s.size() + 8);
@@ -31,6 +39,7 @@ struct ScopeRec {
     return r;
 }
 
+/// True if the command exposes any positional tail (drives `compgen -f` paths).
 [[nodiscard]] inline bool has_positional_arguments(const Command& cmd) {
     for (const auto& a : cmd.positionals) {
         if (a.positional) {
@@ -40,6 +49,7 @@ struct ScopeRec {
     return false;
 }
 
+/// Maps arbitrary command names to C identifier-ish tokens for shell function names.
 [[nodiscard]] inline std::string ident_token(std::string_view s) {
     std::string r;
     for (char c : s) {
@@ -52,6 +62,7 @@ struct ScopeRec {
     return r;
 }
 
+/// DFS append of scopes under `cmd` with `cmd_path` prefix for completion routing tables.
 inline void walk_scopes(const std::string& cmd_path, const Command& cmd,
                         std::vector<ScopeRec>& acc) {
     acc.push_back(ScopeRec{
@@ -66,6 +77,7 @@ inline void walk_scopes(const std::string& cmd_path, const Command& cmd,
     }
 }
 
+/// Builds the flattened scope list used by bash/zsh emitters (root + every command node).
 [[nodiscard]] inline std::vector<ScopeRec> collect_scopes(const Schema& schema) {
     std::vector<ScopeRec> acc;
     acc.push_back(ScopeRec{
