@@ -8,10 +8,13 @@ _____ _______  ____  _____\_ |__ _____ _______  ____
 ```
 <!-- Big money NE - https://patorjk.com/software/taag/#p=testall&f=Bulbhead&t=shebangsy&x=none&v=4&h=4&w=80&we=false> -->
 
-# argsbarg
+# ArgsBarg
 
 [![CI](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml/badge.svg)](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![C++23](https://img.shields.io/badge/C%2B%2B-23-00599C?logo=cplusplus&logoColor=white)](CONTRIBUTING.md#prerequisites)
+[![Linux](https://img.shields.io/badge/Linux-supported-yellowgreen?logo=linux&logoColor=black)](CONTRIBUTING.md#prerequisites)
+[![macOS](https://img.shields.io/badge/macOS-supported-yellowgreen?logo=apple&logoColor=white)](CONTRIBUTING.md#prerequisites)
 
 Build beautiful, well-behaved CLI apps in modern C++ — no macros, no runtime dependencies, just a single header.
 
