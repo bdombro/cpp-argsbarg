@@ -6,7 +6,9 @@
 /// Why: keeps handler signatures small (`void(Context&)`) while exposing path, flags, and args.
 /// How: stores resolved option map and positional vector plus a pointer to the merged schema.
 
-#include <charconv>
+#include <cerrno>
+#include <cmath>
+#include <cstdlib>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -61,11 +63,11 @@ class Context {
             return std::nullopt;
         }
         const auto& s = it->second;
-        double v{};
-        const auto* first = s.data();
-        const auto* last = s.data() + s.size();
-        const auto res = std::from_chars(first, last, v);
-        if (res.ec != std::errc{} || res.ptr != last) {
+        errno = 0;
+        char* end = nullptr;
+        const double v = std::strtod(s.c_str(), &end);
+        if (end == s.c_str() || end != s.c_str() + s.size() || errno == ERANGE ||
+            !std::isfinite(v)) {
             return std::nullopt;
         }
         return v;

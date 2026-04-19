@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-04-19
+
 ### Changed
 
 - `scripts/release.py`: stage all changes (`git add -A`), no clean-tree requirement, dated `CHANGELOG` section without placeholder bullets, always `git push` and `gh release create --notes-from-tag`.
@@ -14,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `Context::number_opt` uses `strtod` so libc++ (e.g. macOS CI) builds where `std::from_chars` has no floating-point overload.
 - `builtins.hpp` formatting for CI `clang-format --dry-run --Werror`.
 
 ## [0.4.1] - 2026-04-19
@@ -80,7 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fluent authoring API: `Leaf`, `Group`, `Opt`, and `Arg` builders (`include/argsbarg/builders.hpp`).
 - `Application` fluent host, `Context` for handlers, `parse` / `schema_validate`, and umbrella header `argsbarg.hpp`.
 
-[Unreleased]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/bdombro/cpp-argsbarg/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/bdombro/cpp-argsbarg/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/bdombro/cpp-argsbarg/compare/v0.2.0...v0.3.0

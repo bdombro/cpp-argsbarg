@@ -34,12 +34,11 @@ inline constexpr const char* k_builtin_zsh = "zsh";
     }
     schema.commands.push_back(
         Group{k_builtin_completion, "Generate the autocompletion script for shells."}
-            .child(
-                Leaf{k_builtin_bash, "Generate the autocompletion script for bash."}
-                    .handler(Handler{[](Context&) {}})
-                    .notes("Prints the bash completion script to stdout only (no automatic "
-                           "install).\n\n"
-                           "Redirect to a file or use process substitution if needed."))
+            .child(Leaf{k_builtin_bash, "Generate the autocompletion script for bash."}
+                       .handler(Handler{[](Context&) {}})
+                       .notes("Prints the bash completion script to stdout only (no automatic "
+                              "install).\n\n"
+                              "Redirect to a file or use process substitution if needed."))
             .child(
                 Leaf{k_builtin_zsh, "Generate the autocompletion script for zsh."}
                     .handler(Handler{[](Context&) {}})
@@ -50,8 +49,7 @@ inline constexpr const char* k_builtin_zsh = "zsh";
                         schema.name +
                         std::string(" completion zsh)\" without adding a file to fpath.\n\n"
                                     "Or redirect to e.g. ~/.zsh/completions/") +
-                        zsh_completion_file +
-                        " on fpath, or use a temp file, as you prefer.")));
+                        zsh_completion_file + " on fpath, or use a temp file, as you prefer.")));
     return schema;
 }
 

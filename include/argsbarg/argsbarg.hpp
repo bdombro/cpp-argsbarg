@@ -27,7 +27,7 @@ namespace argsbarg {
 
 /// Library version string (semver-style), kept in sync with releases and CMake `project(VERSION)`.
 [[nodiscard]] inline constexpr const char* version() noexcept {
-    return "0.4.1";
+    return "0.5.0";
 }
 
 /// Full host pipeline: merge built-ins, validate schema, parse argv, then help, errors,
