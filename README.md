@@ -82,7 +82,7 @@ CMake downloads the source at configure time and builds it alongside your projec
 include(FetchContent)
 FetchContent_Declare(argsbarg
     GIT_REPOSITORY https://github.com/bdombro/cpp-argsbarg.git
-    GIT_TAG        v0.3.0)
+    GIT_TAG        v0.4.0)
 # When embedding, examples and tests default to OFF (set ON if you want them).
 # You can still force them OFF explicitly:
 # set(ARGSBARG_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
@@ -113,7 +113,7 @@ Or from inside the repo: `PREFIX="$HOME/.local" just install`.
 
 ```cmake
 list(APPEND CMAKE_PREFIX_PATH "$ENV{HOME}/.local") # match your install prefix
-find_package(argsbarg 0.3.0 CONFIG REQUIRED)
+find_package(argsbarg 0.4.0 CONFIG REQUIRED)
 
 target_link_libraries(your_target PRIVATE argsbarg::argsbarg)
 ```
