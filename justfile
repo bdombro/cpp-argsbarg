@@ -88,6 +88,6 @@ coverage:
       -ignore-filename-regex='catch2|_deps'
     echo "Open build/coverage/html/index.html"  # instruments tests + examples (header-only lib has no .a)
 
-# Publish a new release
+# Publish a new release (commit, tag, push, gh release).
 release kind:
     python3 "{{justfile_directory()}}/scripts/release.py" "{{kind}}"
