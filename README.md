@@ -1,8 +1,6 @@
 ![Logo](logo.png)
 <!-- Big money NE - https://patorjk.com/software/taag/#p=testall&f=Bulbhead&t=shebangsy&x=none&v=4&h=4&w=80&we=false> -->
 
-# ArgsBarg
-
 [![GitHub](https://img.shields.io/badge/GitHub-bdombro%2Fcpp--argsbarg-181717?logo=github)](https://github.com/bdombro/cpp-argsbarg)
 
 [![CI](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml/badge.svg)](https://github.com/bdombro/cpp-argsbarg/actions/workflows/ci.yml)
@@ -13,7 +11,7 @@
 
 Build beautiful, well-behaved CLI apps in modern C++ — no macros, no runtime dependencies, just a single header.
 
-**ArgsBarg** is *schema-first* -- define your entire CLI’s structure, commands, options, and help in a single, explicit data model, making the command-line interface centralized, clear and self-describing upfront. `cpp-argsbarg` has siblings --> [nim](https://github.com/bdombro/nim-argsbarg), and [swift](https://github.com/bdombro/swift-argsbarg).
+**ArgsBarg** is *schema-first* -- define your entire CLI’s structure, commands, options, and help in a single, explicit data model, making the command-line interface centralized, clear and self-describing upfront. `cpp-argsbarg` has siblings --> [bun](https://github.com/bdombro/bun-argsbarg), [nim](https://github.com/bdombro/nim-argsbarg), and [swift](https://github.com/bdombro/swift-argsbarg).
 
 Halps! -->
 ![help-preview.png](docs/help-preview.png)
